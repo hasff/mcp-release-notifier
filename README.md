@@ -135,7 +135,7 @@ mcp-release-notifier/
 
 ### Code walkthrough
 
-## 1. Install dependencies
+#### 1. Install dependencies
 
 ```bash
 pip install "mcp[cli]" reportlab
