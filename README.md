@@ -33,7 +33,7 @@
 
 ## What is MCP?
 
-Imagine an AI as a person locked in a dark room. They can think, reason, and answer questions — but only based on what they already know, plus the context of the current conversation. No internet, no tools, no real-time data. *Just memory — their training data and the context they've been given.*
+Imagine an AI as a person locked in a dark room. They can think, reason, and answer questions — but only based on what they already know, plus the context of the current conversation. No internet, no smartphone, no real-time data. *Just memory — their training data and the context they've been given.*
 
 **MCP opens the door.**
 
