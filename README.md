@@ -147,7 +147,7 @@ mcp-release-notifier/
 <a name="part-1"></a>
 ## Part 01 — 🖥️ MCP Server Setup
 
-> **What you'll learn:** How to create an MCP server with FastMCP, expose Tools, a Resource, and a Prompt.
+> **What you'll learn:** How to scaffold a minimal MCP server — valid, runnable, but intentionally empty.
 
 ### Theory
 
