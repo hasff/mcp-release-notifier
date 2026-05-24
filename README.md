@@ -191,8 +191,7 @@ The MCP Inspector is an official browser-based UI that lets you interact with an
 ### Run it
 
 ```bash
-cd A_MCP_Server
-mcp dev server.py
+mcp dev MCP_Server/server.py
 ```
 
 Open the URL shown in the terminal (usually `http://localhost:5173`).
