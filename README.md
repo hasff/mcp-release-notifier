@@ -11,16 +11,21 @@
 - [Requirements](#requirements)
 - [Setup](#setup)
 - [Project Structure](#project-structure)
-- [Part 1 — MCP Server](#part-1--mcp-server)
-- [Part 2 — Testing with MCP Inspector](#part-2--testing-with-mcp-inspector)
-- [Part 3 — MCP Client](#part-3--mcp-client)
-- [Part 4 — Client Test](#part-4--client-test)
-- [Part 5 — FastAPI Webhook](#part-5--fastapi-webhook)
-- [Part 6 — Cloudflared](#part-6--cloudflared)
-- [Part 7 — GitHub Webhook](#part-7--github-webhook)
-- [Part 8 — Full Pipeline](#part-8--full-pipeline)
-- [Part 9 — Discord Setup](#part-9--discord-setup)
-- [Part 10 — Send PDF to Discord](#part-10--send-pdf-to-discord)
+- [Part 01 — 🖥️ MCP Server Setup](#part-1)
+- [Part 02 — 🖥️🔧 Adding Tools](#part-2)
+- [Part 03 — 🖥️🔧🔍 Testing Tools](#part-3)
+- [Part 04 — 🖥️📚 Adding Resources](#part-4)
+- [Part 05 — 🖥️📚🔍 Testing Resources](#part-5)
+- [Part 06 — 🖥️✍️ Adding Prompts](#part-6)
+- [Part 07 — 🖥️✍️🔍 Testing Prompts](#part-7)
+- [Part 08 — 🔌 MCP Client Setup](#part-8)
+- [Part 09 — 🔌🔍 Testing the Client](#part-9)
+- [Part 10 — ⚡ FastAPI Webhook](#part-10)
+- [Part 11 — 🌐 Cloudflared](#part-11)
+- [Part 12 — 🐙 GitHub Webhook](#part-12)
+- [Part 13 — 🔗 Full Pipeline](#part-13)
+- [Part 14 — 🎮 Discord Setup](#part-14)
+- [Part 15 — 📤 Sending the PDF](#part-15)
 - [Next Steps & Resources](#next-steps--resources)
 - [Get in Touch](#get-in-touch)
 
@@ -28,9 +33,17 @@
 
 ## What is MCP?
 
-The **Model Context Protocol (MCP)** is an open standard that defines how AI models communicate with external tools and data sources.
+Imagine an AI as a person locked in a dark room. They can think, reason, and answer questions — but only based on what they already know, plus the context of the current conversation. No internet, no tools, no real-time data. *Just memory — their training data and the context they've been given.*
 
-Think of it less like an API and more like **USB-C for AI** — a universal connector. Before MCP, every AI integration was a custom bridge written for one specific model or platform. With MCP, you build a server once and any MCP-compatible client (Claude Desktop, Cursor, your own app) can connect to it.
+**MCP opens the door.**
+
+**Before MCP**, connecting an AI to an external tool or data source meant writing custom code every time — fragile integrations that broke whenever a third-party service changed.
+
+**MCP standardises that connection layer.**
+
+If you're building an app and want to add AI capabilities that reach beyond the model itself — external tools, live data, third-party services — it can be up and running in minutes, not days.
+
+
 
 MCP exposes three primitives:
 
@@ -111,11 +124,16 @@ source venv/bin/activate
 
 ```
 mcp-release-notifier/
-├── A_MCP_Server/
-├── B_MCP_Client/
-├── C_Webhook/
-├── D_Pipeline/
-├── E_Discord/
+├── MCP_Server/
+|   ├── server_v1.py   ← Part 01: bare server
+|   ├── server_v2.py   ← Part 02 and 03: + tools
+|   ├── server_v3.py   ← Part 04 and 05: + resources  
+|   ├── server_v4.py   ← Part 06 and 07: + prompts
+|   └── release_data/
+├── MCP_Client/
+├── Webhook/
+├── Pipeline/
+├── Discord/
 ├── assets/
 └── README.md
 ```
@@ -126,7 +144,8 @@ mcp-release-notifier/
 
 ---
 
-## Part 1 — MCP Server
+<a name="part-1"></a>
+## Part 01 — 🖥️ MCP Server Setup
 
 > **What you'll learn:** How to create an MCP server with FastMCP, expose Tools, a Resource, and a Prompt.
 
@@ -151,9 +170,19 @@ pip install "mcp[cli]" reportlab
 
 ---
 
-## Part 2 — Testing with MCP Inspector
+<a name="part-2"></a>
+## Part 02 — 🖥️🔧 Adding Tools
 
-> **What you'll learn:** How to use the MCP Inspector to test your server — call Tools, read Resources, and invoke Prompts manually.
+*(coming soon)*
+
+[↑ Back to Table of Contents](#table-of-contents)
+
+---
+
+<a name="part-3"></a>
+## Part 03 — 🖥️🔧🔍 Testing Tools
+
+> **What you'll learn:** How to use the MCP Inspector to test your server — call Tools manually and verify their output.
 
 ### What is the MCP Inspector?
 
@@ -170,10 +199,8 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 
 ### What to test
 
-1. **Resources** → click `releases://latest` → verify the mock payload loads
-2. **Prompts** → call `generate_release_notes` with a version and some changes
-3. **Tools** → call `read_mock_release` → verify it returns the JSON
-4. **Tools** → call `create_pdf` with fake data → verify a PDF appears in `output/`
+1. **Tools** → call `read_last_release` → verify it returns the JSON
+2. **Tools** → call `create_pdf` with fake data → verify a PDF appears in `output/`
 
 *(screenshots coming soon)*
 
@@ -181,7 +208,8 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 
 ---
 
-## Part 3 — MCP Client
+<a name="part-4"></a>
+## Part 04 — 🖥️📚 Adding Resources
 
 *(coming soon)*
 
@@ -189,7 +217,12 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 
 ---
 
-## Part 4 — Client Test
+<a name="part-5"></a>
+## Part 05 — 🖥️📚🔍 Testing Resources
+
+> ⚠️ **MCP Inspector behaviour:** After calling a template resource (`releases://by/{id}`),
+> the Inspector may return cached results for subsequent static resource calls (`releases://latest`).
+> Refresh the page to reset.
 
 *(coming soon)*
 
@@ -197,7 +230,8 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 
 ---
 
-## Part 5 — FastAPI Webhook
+<a name="part-6"></a>
+## Part 06 — 🖥️✍️ Adding Prompts
 
 *(coming soon)*
 
@@ -205,7 +239,8 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 
 ---
 
-## Part 6 — Cloudflared
+<a name="part-7"></a>
+## Part 07 — 🖥️✍️🔍 Testing Prompts
 
 *(coming soon)*
 
@@ -213,7 +248,8 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 
 ---
 
-## Part 7 — GitHub Webhook
+<a name="part-8"></a>
+## Part 08 — 🔌 MCP Client Setup
 
 *(coming soon)*
 
@@ -221,7 +257,8 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 
 ---
 
-## Part 8 — Full Pipeline
+<a name="part-9"></a>
+## Part 09 — 🔌🔍 Testing the Client
 
 *(coming soon)*
 
@@ -229,7 +266,8 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 
 ---
 
-## Part 9 — Discord Setup
+<a name="part-10"></a>
+## Part 10 — ⚡ FastAPI Webhook
 
 *(coming soon)*
 
@@ -237,7 +275,44 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 
 ---
 
-## Part 10 — Send PDF to Discord
+<a name="part-11"></a>
+## Part 11 — 🌐 Cloudflared
+
+*(coming soon)*
+
+[↑ Back to Table of Contents](#table-of-contents)
+
+---
+
+<a name="part-12"></a>
+## Part 12 — 🐙 GitHub Webhook
+
+*(coming soon)*
+
+[↑ Back to Table of Contents](#table-of-contents)
+
+---
+
+<a name="part-13"></a>
+## Part 13 — 🔗 Full Pipeline
+
+*(coming soon)*
+
+[↑ Back to Table of Contents](#table-of-contents)
+
+---
+
+<a name="part-14"></a>
+## Part 14 — 🎮 Discord Setup
+
+*(coming soon)*
+
+[↑ Back to Table of Contents](#table-of-contents)
+
+---
+
+<a name="part-15"></a>
+## Part 15 — 📤 Sending the PDF
 
 *(coming soon)*
 
@@ -267,4 +342,3 @@ Want to go deeper? Here are the resources that inspired and complement this proj
 🔗 [LinkedIn](https://www.linkedin.com/in/hugo-ferro-1434b414/)
 
 [↑ Back to Table of Contents](#table-of-contents)
-
