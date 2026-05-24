@@ -14,23 +14,22 @@ from reportlab.lib.styles import getSampleStyleSheet
 # ⚙️ CONFIGURATION
 # ─────────────────────────────────────────────
 BASE_DIR = Path(__file__).parent
-MOCK_DATA_DIR = BASE_DIR / "mock_data"
+RELEASE_DATA_DIR = BASE_DIR / "release_data"
 OUTPUT_DIR = BASE_DIR / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 mcp = FastMCP("release-notifier")
 
 # ─────────────────────────────────────────────
-# 🔧 TOOL 1 — read mock data
+# 🔧 TOOL 1 — read last release
 # ─────────────────────────────────────────────
 @mcp.tool()
-def read_mock_release() -> dict:
-    """Reads the mock GitHub release payload from mock_data/release_payload.json."""
-    path = MOCK_DATA_DIR / "release_payload.json"
-    if not path.exists():
-        return {"error": "mock_data/release_payload.json not found"}
-    data = json.loads(path.read_text(encoding="utf-8"))
-    return data
+def read_last_release() -> dict:
+    """Reads the most recent release payload from release_data/."""
+    files = sorted(RELEASE_DATA_DIR.glob("release_[0-9]*.json"))
+    if not files:
+        return {"error": "No release files found in release_data/"}
+    return json.loads(files[-1].read_text(encoding="utf-8"))
 
 # ─────────────────────────────────────────────
 # 🔧 TOOL 2 — create PDF
@@ -66,16 +65,33 @@ def create_pdf(version: str, repo_name: str, release_notes: str, published_at: s
 
 
 # ─────────────────────────────────────────────
-# 📚 RESOURCE — exposes mock data as readable source
+# 📚 RESOURCE 1 — static resource
+# Returns the latest release from release_data by sorting filenames (timestamp-based).
+# Type: Static resource — fixed URI, dynamic content resolved at read time.
 # ─────────────────────────────────────────────
 @mcp.resource(
     "releases://latest",
-    description="Returns the latest GitHub release payload from mock data"
+    description="Returns the most recent GitHub release payload from release_data"
 )
 def get_latest_release() -> str:
-    path = MOCK_DATA_DIR / "release_payload.json"
+    files = sorted(RELEASE_DATA_DIR.glob("release_[0-9]*.json"))
+    if not files:
+        return json.dumps({"error": "No release files found in release_data"})
+    return files[-1].read_text(encoding="utf-8")
+
+# ─────────────────────────────────────────────
+# 📚 RESOURCE 2 — template resource
+# Returns a specific release by id (e.g. releases://release_20250524_143000).
+# Type: Template resource — URI with parameter {id}, resolved dynamically per request.
+# ─────────────────────────────────────────────
+@mcp.resource(
+    "releases://by/{id}",
+    description="Returns a specific release payload by id (e.g. release_20250524_143000)"
+)
+def get_release_by_id(id: str) -> str:
+    path = RELEASE_DATA_DIR / f"{id}.json"
     if not path.exists():
-        return json.dumps({"error": "mock_data/release_payload.json not found"})
+        return json.dumps({"error": f"{id}.json not found in release_data"})
     return path.read_text(encoding="utf-8")
 
 
