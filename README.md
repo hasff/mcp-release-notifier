@@ -21,6 +21,7 @@
 - [Part 8 — Full Pipeline](#part-8--full-pipeline)
 - [Part 9 — Discord Setup](#part-9--discord-setup)
 - [Part 10 — Send PDF to Discord](#part-10--send-pdf-to-discord)
+- [Next Steps & Resources](#next-steps--resources)
 - [Get in Touch](#get-in-touch)
 
 ---
@@ -144,6 +145,8 @@ pip install "mcp[cli]" reportlab
 *(coming soon)*
 
 
+💡 The **Model Context Protocol (MCP)** was designed to standardize how AI models interact with external tools, APIs, and data sources, enabling a modular and interoperable ecosystem.
+
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
@@ -242,8 +245,24 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 
 ---
 
+## Next Steps & Resources
+
+Want to go deeper? Here are the resources that inspired and complement this project.
+
+**Model Context Protocol**
+- 🤗 [MCP Course — Hugging Face](https://huggingface.co/learn/mcp-course/unit0/introduction) — *the pipeline in this project was inspired by this course*
+- 🟠 [Introduction to Model Context Protocol — Anthropic](https://anthropic.skilljar.com/introduction-to-model-context-protocol)
+- 🟠 [Model Context Protocol: Advanced Topics — Anthropic](https://anthropic.skilljar.com/model-context-protocol-advanced-topics)
+
+**PDF Generation**
+- 🐍 [Python PDF Generation: From Beginner to Winner (ReportLab)](https://www.udemy.com/course/python-reportlab-from-beginner-to-winner/?referralCode=3B927E883D2E868CF221)
+
+[↑ Back to Table of Contents](#table-of-contents)
+
+---
+
 ## Get in Touch
-📩 Contact: hugoferro.business(at)gmail.com
+📩 Contact: hugoferro.business (at) gmail.com
 
 🔗 [LinkedIn](https://www.linkedin.com/in/hugo-ferro-1434b414/)
 
