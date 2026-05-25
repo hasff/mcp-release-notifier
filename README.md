@@ -169,7 +169,7 @@ mcp-release-notifier/
 MCP follows a **client-server architecture**:
 
 - The **MCP Server** exposes capabilities — tools, resources, and prompts.
-- The **MCP Client** connects to the server, discovers what's available, and decides how to use it — often driven by an AI model.
+- The **MCP Client** connects to the server, discovers what's available, and exposes those capabilities to the AI model — which then decides how to use them.
 
 Think of the server as a **capability provider**: it doesn't decide when or how its tools are used — it just makes them available. The intelligence lives on the client side.
 
