@@ -200,6 +200,7 @@ pip install "mcp[cli]"
 
 ### Code walkthrough
 
+> 📄 **File:** `MCP_Server/server_v1.py`
 ```python
 # 1 — Import
 from mcp.server.fastmcp import FastMCP
@@ -226,6 +227,40 @@ Starts the server. By default, it uses **stdio transport** — the server commun
 > 💡 **Transport is just a detail.** MCP is **transport-agnostic** — the core concepts (tools, resources, prompts) work the same regardless of whether communication happens over stdio (local) or HTTP (remote). The transport choice may affect some low-level behaviour, but that's beyond the scope of this project. Here we use stdio.
 >
 > 🐇 **Want to go deeper?** Ask an AI: *"What is the difference between HTTP+SSE and StreamableHTTP in MCP, and why might you need to disable notifications in HTTP-based transports?"*
+---
+
+### Run it
+
+Curious to see if it's already alive? Run this in your terminal:
+
+```bash
+mcp dev MCP_Server/server_v1.py
+```
+
+You should see something like this:
+
+![Connect button](assets/part_01/screenshot_terminal.jpg)
+
+Now open the URL shown in the terminal. You'll land on the MCP Inspector:
+
+![Connect button](assets/part_01/screenshot_browser.jpg)
+
+Click **Connect** to establish the connection with your server.
+
+> ⚠️ **Command field:** The Inspector pre-fills this based on your system.
+> - Windows: typically `py`
+> - macOS / Linux: typically `python` or `python3`
+>
+> The **Arguments** field should contain the path to your server file (e.g. `MCP_Server/server_v1.py`).
+
+![Connect button](assets/part_01/screenshot_connect_button.jpg)
+
+Once connected — no tools, no resources, nothing yet. But the server is alive and responding. ✅
+
+![Connect button](assets/part_01/screenshot_connected.jpg)
+
+❎ When you're done, press `Ctrl + C` in the terminal to stop the server.
+
 ---
 
 ### 🎮 Quiz
