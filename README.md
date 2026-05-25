@@ -4,6 +4,14 @@
 
 ---
 
+⚠️ **Heads up**
+
+This is a personal learning project — not an official Anthropic or MCP resource.
+It may contain errors, simplifications, or opinionated choices made for clarity over correctness.
+Think of it as a **warm-up project**: a hands-on way to get comfortable with MCP before tackling the recommended courses at the end of this README.
+
+---
+
 ## Table of Contents
 
 - [What is MCP?](#what-is-mcp)
@@ -64,7 +72,7 @@ This project uses all three.
 ---
 
 ## Project Architecture
-
+🚨🚨🚨
 ```
 GitHub Release
       │
@@ -100,6 +108,7 @@ GitHub Release
 ## Setup
 
 > **Note on tooling:** I'm using `pip` throughout this project for simplicity and accessibility. The MCP ecosystem recommends `uv` (a faster Python package manager), but if you're not familiar with it yet, `pip` works perfectly here. Feel free to switch to `uv` if you prefer.
+> All examples in this project are built and tested with `pip` — not `uv`.
 
 ### 1. Clone the repository
 
@@ -125,8 +134,8 @@ source venv/bin/activate
 ---
 
 ## Project Structure
-
-```
+🚨🚨🚨
+``` 
 mcp-release-notifier/
 ├── MCP_Server/
 |   ├── server_v1.py   ← Part 01: bare server
@@ -153,22 +162,80 @@ mcp-release-notifier/
 
 > **What you'll learn:** How to scaffold a minimal MCP server — valid, runnable, but intentionally empty.
 
+---
+
 ### Theory
 
-*(coming soon)*
+MCP follows a **client-server architecture**:
+
+- The **MCP Server** exposes capabilities — tools, resources, and prompts.
+- The **MCP Client** (or an AI model) connects to the server, discovers what's available, and decides how to use it.
+
+Think of the server as a **capability provider**: it doesn't decide when or how its tools are used — it just makes them available. The intelligence lives on the client side.
+
+> 💡 **In practice**, most developers interact with MCP as **clients** — connecting to servers that already exist (GitHub, Notion, Slack...). Building your own server is less common, and typically you'd focus on one side or the other. In this project, we build both — but that's intentional: the goal is to understand the full picture, not to model a production setup.
+
+🚨🚨🚨
+In this project, our server will eventually expose two tools (`read_last_release` and `create_pdf`), two resources, and one prompt. We also plan to consume an **external MCP server** (e.g. GitHub) as a client — but that part is still being designed. But first — let's get the skeleton running.
+🚨🚨🚨
+
+---
+
+### Install dependencies
+
+```bash
+pip install "mcp[cli]"
+```
+
+> ⚠️ **`mcp` vs `fastmcp` — important distinction:**
+> - `mcp` → official package, **Author: Anthropic, PBC** → [pypi.org/project/mcp](https://pypi.org/project/mcp)
+> - `fastmcp` → third-party package, **Author: Jeremiah Lowin / Prefect** → [pypi.org/project/fastmcp](https://pypi.org/project/fastmcp)
+>
+> Despite the similar name, they are maintained by completely different teams. Having both installed can cause conflicts. **This project uses `mcp` only** — `FastMCP` is simply a class exposed inside the official Anthropic package (`mcp.server.fastmcp`).
+
+> 💡 **Why `[cli]`?**
+> The `[cli]` extra installs additional tools needed to run and inspect your server locally — including the **MCP Inspector**, which we'll use in Part 03. Without it, you'd have the core library but none of the dev tooling.
+
+---
 
 ### Code walkthrough
 
-#### 1. Install dependencies
+```python
+# 1 — Import
+from mcp.server.fastmcp import FastMCP
 
-```bash
-pip install "mcp[cli]" reportlab
+# 2 — Create server instance
+mcp = FastMCP("release-notifier")
+
+# TODO
+
+# 3 — Run
+if __name__ == "__main__":
+    mcp.run()
 ```
+
+**# 1 — Import:**
+Imports the `FastMCP` class from the official `mcp` package. This class handles all the MCP protocol boilerplate — you just define tools, resources, and prompts on top of it.
+
+**# 2 — Create server instance:**
+Creates your server instance. The string `"release-notifier"` is the server name — it's what clients see when they connect and ask *"what server am I talking to?"*.
+
+**# 3 — Run:**
+Starts the server. By default, it uses **stdio transport** — the server communicates via standard input/output, which means the MCP client and the MCP server run on the **same machine**.
+
+> 💡 **Transport is just a detail.** MCP is **transport-agnostic** — the core concepts (tools, resources, prompts) work the same regardless of whether communication happens over stdio (local) or HTTP (remote). The transport choice may affect some low-level behaviour, but that's beyond the scope of this project. Here we use stdio.
+>
+> 🐇 **Want to go deeper?** Ask an AI: *"What is the difference between HTTP+SSE and StreamableHTTP in MCP, and why might you need to disable notifications in HTTP-based transports?"*
+---
+
+### 🎮 Quiz
 
 *(coming soon)*
 
+---
 
-💡 The **Model Context Protocol (MCP)** was designed to standardize how AI models interact with external tools, APIs, and data sources, enabling a modular and interoperable ecosystem.
+> 💡 **MCP Curiosity**
+> MCP was publicly released by Anthropic in November 2024 — but it was designed from the start as an **open standard**, not an Anthropic-exclusive protocol. Any AI model, any client, any server can implement it. The goal is interoperability, not lock-in.
 
 [↑ Back to Table of Contents](#table-of-contents)
 
