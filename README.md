@@ -4,6 +4,7 @@
 
 ---
 
+
 ⚠️ **Heads up**
 
 This is a personal learning project — not an official Anthropic or MCP resource.
@@ -11,6 +12,7 @@ It may contain errors, simplifications, or opinionated choices made for clarity 
 Think of it as a **warm-up project**: a hands-on way to get comfortable with MCP before tackling the recommended courses at the end of this README.
 
 ---
+
 
 ## Table of Contents
 
@@ -38,8 +40,12 @@ Think of it as a **warm-up project**: a hands-on way to get comfortable with MCP
 - [Get in Touch](#get-in-touch)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Table of Contents](#table-of-contents) | [Project Architecture ➡️](#project-architecture)
+
+
 ## What is MCP?
+
+#### ⚡ Quick Navigation: [⬅️ Table of Contents](#table-of-contents) | [Project Architecture ➡️](#project-architecture)
+
 
 Imagine an AI as a person locked in a dark room. They can think, reason, and answer questions — but only based on what they already know, plus the context of the current conversation. No internet, no smartphone, no real-time data. *Just memory — their training data and the context they've been given.*
 
@@ -73,9 +79,13 @@ This project uses all three.
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ What is MCP?](#what-is-mcp) | [Requirements ➡️](#requirements)
+
 
 ## Project Architecture
+
+#### ⚡ Quick Navigation: [⬅️ What is MCP?](#what-is-mcp) | [Requirements ➡️](#requirements)
+
+
 🚨🚨🚨
 ```
 GitHub Release
@@ -97,9 +107,12 @@ GitHub Release
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Project Architecture](#project-architecture) | [Setup ➡️](#setup)
+
 
 ## Requirements
+
+#### ⚡ Quick Navigation: [⬅️ Project Architecture](#project-architecture) | [Setup ➡️](#setup)
+
 
 - Python 3.10+
 - A GitHub account
@@ -109,9 +122,13 @@ GitHub Release
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Requirements](#requirements) | [Project Structure ➡️](#project-structure)
+
 
 ## Setup
+
+#### ⚡ Quick Navigation: [⬅️ Requirements](#requirements) | [Project Structure ➡️](#project-structure)
+
+
 
 > **Note on tooling:** I'm using `pip` throughout this project for simplicity and accessibility. The MCP ecosystem recommends `uv` (a faster Python package manager), but if you're not familiar with it yet, `pip` works perfectly here. Feel free to switch to `uv` if you prefer.
 > All examples in this project are built and tested with `pip` — not `uv`.
@@ -138,9 +155,13 @@ source venv/bin/activate
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Setup](#setup) | [Part 01 ➡️](#part-1)
+
 
 ## Project Structure
+
+#### ⚡ Quick Navigation: [⬅️ Setup](#setup) | [Part 01 ➡️](#part-1)
+
+
 🚨🚨🚨
 ``` 
 mcp-release-notifier/
@@ -164,15 +185,18 @@ mcp-release-notifier/
 
 ---
 
-#### ⚡ Quick Navigation: [⬅️ Project Structure](#project-structure) | [Part 02 — 🖥️🔧 Adding Tools ➡️](#part-2)
+
 
 <a name="part-1"></a>
 ## Part 01 — 🖥️ MCP Server Setup  
 
+#### ⚡ Quick Navigation: [⬅️ Project Structure](#project-structure) | [Part 02 — 🖥️🔧 Adding Tools ➡️](#part-2)
 
-> **What you'll learn:** How to scaffold a minimal MCP server — valid, runnable, but intentionally empty.
+
+> 📒 **What you'll learn:** How to scaffold a minimal MCP server — valid, runnable, but intentionally empty.
 
 ---
+
 
 ### Theory
 
@@ -191,6 +215,7 @@ In this project, our server will eventually expose two tools (`read_last_release
 
 ---
 
+
 ### Install dependencies
 
 ```bash
@@ -207,6 +232,7 @@ pip install "mcp[cli]"
 > The `[cli]` extra installs additional tools needed to run and inspect your server locally — including the **MCP Inspector**, which we'll use in Part 03. Without it, you'd have the core library but none of the dev tooling.
 
 ---
+
 
 ### Code walkthrough
 
@@ -238,6 +264,7 @@ Starts the server. By default, it uses **stdio transport** — the server commun
 >
 > 🐇 **Want to go deeper?** Ask an AI: *"What is the difference between HTTP+SSE and StreamableHTTP in MCP, and why might you need to disable notifications in HTTP-based transports?"*
 ---
+
 
 ### Run it
 
@@ -273,11 +300,13 @@ Once connected — no tools, no resources, nothing yet. But the server is alive 
 
 ---
 
+
 ### 🎮 Quiz
 
 *(coming soon)*
 
 ---
+
 
 > 💡 **MCP Curiosity**
 > MCP was publicly released by Anthropic in November 2024 — but it was designed from the start as an **open standard**, not an Anthropic-exclusive protocol. Any AI model, any client, any server can implement it. The goal is interoperability, not lock-in.
@@ -285,14 +314,17 @@ Once connected — no tools, no resources, nothing yet. But the server is alive 
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Part 01 — 🖥️ MCP Server Setup](#part-1) | [Part 03 — 🖥️🔧🔍 Testing Tools ➡️](#part-3)
+
 
 <a name="part-2"></a>
 ## Part 02 — 🖥️🔧 Adding Tools
 
-> **What you'll learn:** How to define and register tools in an MCP server — and why the registration step matters.
+#### ⚡ Quick Navigation: [⬅️ Part 01 — 🖥️ MCP Server Setup](#part-1) | [Part 03 — 🖥️🔧🔍 Testing Tools ➡️](#part-3)
+
+> 📒 **What you'll learn:** How to define and register tools in an MCP server — and why the registration step matters.
 
 ---
+
 
 ### Theory
 
@@ -311,6 +343,7 @@ The folder structure looks like this:
 
 ---
 
+
 ### Install dependencies
 
 ```bash
@@ -321,6 +354,7 @@ pip install reportlab
 > ReportLab is a Python library for generating PDFs programmatically. Our `create_pdf` tool will use it to build a structured PDF from the release notes data.
 
 ---
+
 
 ### Code walkthrough
 
@@ -354,6 +388,7 @@ Already covered in Part 01 — this is the `FastMCP` class that powers our serve
 
 ---
 
+
 #### Step 2 — Project paths
 
 ```python
@@ -369,6 +404,7 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 `BASE_DIR` is the directory where `server_v2.py` lives. Everything else is relative to it — `release_data/` is where the input JSON files come from, and `output/` is where generated PDFs will be saved. `OUTPUT_DIR.mkdir(exist_ok=True)` ensures the folder is created automatically if it doesn't exist yet.
 
 ---
+
 
 #### Step 3 — Define the functions (plain Python)
 
@@ -387,6 +423,7 @@ def create_pdf(version: str, repo_name: str, release_notes: str, published_at: s
 > 📄 **Full implementation:** `MCP_Server/server_v2.py`
 
 ---
+
 
 #### Step 4 — Register the tools with MCP
 
@@ -429,11 +466,13 @@ Three things to note here:
 
 ---
 
+
 ### 🎮 Quiz
 
 *(coming soon)*
 
 ---
+
 
 > 💡 **MCP Curiosity**
 > Every MCP server publishes a machine-readable catalog — `tools/list`, `resources/list`, `prompts/list`. This means an AI agent can discover new capabilities at runtime without any code changes on the client side.
@@ -441,12 +480,14 @@ Three things to note here:
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Part 02 — 🖥️🔧 Adding Tools](#part-2) | [Part 04 — 🖥️📚 Adding Resources ➡️](#part-4)
+
 
 <a name="part-3"></a>
 ## Part 03 — 🖥️🔧🔍 Testing Tools
 
-> **What you'll learn:** How to use the MCP Inspector to test your server — call Tools manually and verify their output.
+#### ⚡ Quick Navigation: [⬅️ Part 02 — 🖥️🔧 Adding Tools](#part-2) | [Part 04 — 🖥️📚 Adding Resources ➡️](#part-4)
+
+> 📒 **What you'll learn:** How to use the MCP Inspector to test your server — call Tools manually and verify their output.
 
 ### What is the MCP Inspector?
 
@@ -470,20 +511,24 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Part 03 — 🖥️🔧🔍 Testing Tools](#part-3) | [Part 05 — 🖥️📚🔍 Testing Resources ➡️](#part-5)
+
 
 <a name="part-4"></a>
 ## Part 04 — 🖥️📚 Adding Resources
+
+#### ⚡ Quick Navigation: [⬅️ Part 03 — 🖥️🔧🔍 Testing Tools](#part-3) | [Part 05 — 🖥️📚🔍 Testing Resources ➡️](#part-5)
 
 *(coming soon)*
 
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Part 04 — 🖥️📚 Adding Resources](#part-4) | [Part 06 — 🖥️✍️ Adding Prompts ➡️](#part-6)
+
 
 <a name="part-5"></a>
 ## Part 05 — 🖥️📚🔍 Testing Resources
+
+#### ⚡ Quick Navigation: [⬅️ Part 04 — 🖥️📚 Adding Resources](#part-4) | [Part 06 — 🖥️✍️ Adding Prompts ➡️](#part-6)
 
 > ⚠️ **MCP Inspector behaviour:** After calling a template resource (`releases://by/{id}`),
 > the Inspector may return cached results for subsequent static resource calls (`releases://latest`).
@@ -494,109 +539,131 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Part 05 — 🖥️📚🔍 Testing Resources](#part-5) | [Part 07 — 🖥️✍️🔍 Testing Prompts ➡️](#part-7)
+
 
 <a name="part-6"></a>
 ## Part 06 — 🖥️✍️ Adding Prompts
 
+#### ⚡ Quick Navigation: [⬅️ Part 05 — 🖥️📚🔍 Testing Resources](#part-5) | [Part 07 — 🖥️✍️🔍 Testing Prompts ➡️](#part-7)
+
 *(coming soon)*
 
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Part 06 — 🖥️✍️ Adding Prompts](#part-6) | [Part 08 — 🔌 MCP Client Setup ➡️](#part-8)
+
 
 <a name="part-7"></a>
 ## Part 07 — 🖥️✍️🔍 Testing Prompts
 
+#### ⚡ Quick Navigation: [⬅️ Part 06 — 🖥️✍️ Adding Prompts](#part-6) | [Part 08 — 🔌 MCP Client Setup ➡️](#part-8)
+
 *(coming soon)*
 
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Part 07 — 🖥️✍️🔍 Testing Prompts](#part-7) | [Part 09 — 🔌🔍 Testing the Client ➡️](#part-9)
+
 
 <a name="part-8"></a>
 ## Part 08 — 🔌 MCP Client Setup
 
+#### ⚡ Quick Navigation: [⬅️ Part 07 — 🖥️✍️🔍 Testing Prompts](#part-7) | [Part 09 — 🔌🔍 Testing the Client ➡️](#part-9)
+
 *(coming soon)*
 
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Part 08 — 🔌 MCP Client Setup](#part-8) | [Part 10 — ⚡ FastAPI Webhook ➡️](#part-10)
+
 
 <a name="part-9"></a>
 ## Part 09 — 🔌🔍 Testing the Client
 
+#### ⚡ Quick Navigation: [⬅️ Part 08 — 🔌 MCP Client Setup](#part-8) | [Part 10 — ⚡ FastAPI Webhook ➡️](#part-10)
+
 *(coming soon)*
 
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Part 09 — 🔌🔍 Testing the Client](#part-9) | [Part 11 — 🌐 Cloudflared ➡️](#part-11)
+
 
 <a name="part-10"></a>
 ## Part 10 — ⚡ FastAPI Webhook
 
+#### ⚡ Quick Navigation: [⬅️ Part 09 — 🔌🔍 Testing the Client](#part-9) | [Part 11 — 🌐 Cloudflared ➡️](#part-11)
+
 *(coming soon)*
 
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Part 10 — ⚡ FastAPI Webhook](#part-10) | [Part 12 — 🐙 GitHub Webhook ➡️](#part-12)
+
 
 <a name="part-11"></a>
 ## Part 11 — 🌐 Cloudflared
 
+#### ⚡ Quick Navigation: [⬅️ Part 10 — ⚡ FastAPI Webhook](#part-10) | [Part 12 — 🐙 GitHub Webhook ➡️](#part-12)
+
 *(coming soon)*
 
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Part 11 — 🌐 Cloudflared](#part-11) | [Part 13 — 🔗 Full Pipeline ➡️](#part-13)
+
 
 <a name="part-12"></a>
 ## Part 12 — 🐙 GitHub Webhook
 
+#### ⚡ Quick Navigation: [⬅️ Part 11 — 🌐 Cloudflared](#part-11) | [Part 13 — 🔗 Full Pipeline ➡️](#part-13)
+
 *(coming soon)*
 
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Part 12 — 🐙 GitHub Webhook](#part-12) | [Part 14 — 🎮 Discord Setup ➡️](#part-14)
+
 
 <a name="part-13"></a>
 ## Part 13 — 🔗 Full Pipeline
 
+#### ⚡ Quick Navigation: [⬅️ Part 12 — 🐙 GitHub Webhook](#part-12) | [Part 14 — 🎮 Discord Setup ➡️](#part-14)
+
 *(coming soon)*
 
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Part 13 — 🔗 Full Pipeline](#part-13) | [Part 15 — 📤 Sending the PDF ➡️](#part-15)
+
 
 <a name="part-14"></a>
 ## Part 14 — 🎮 Discord Setup
 
+#### ⚡ Quick Navigation: [⬅️ Part 13 — 🔗 Full Pipeline](#part-13) | [Part 15 — 📤 Sending the PDF ➡️](#part-15)
+
 *(coming soon)*
 
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Part 14 — 🎮 Discord Setup](#part-14) | [Next Steps & Resources ➡️](#next-steps--resources)
+
 
 <a name="part-15"></a>
 ## Part 15 — 📤 Sending the PDF
 
+#### ⚡ Quick Navigation: [⬅️ Part 14 — 🎮 Discord Setup](#part-14) | [Next Steps & Resources ➡️](#next-steps--resources)
+
 *(coming soon)*
 
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Part 15 — 📤 Sending the PDF](#part-15) | [Get in Touch ➡️](#get-in-touch)
+
 
 ## Next Steps & Resources
+
+#### ⚡ Quick Navigation: [⬅️ Part 15 — 📤 Sending the PDF](#part-15) | [Get in Touch ➡️](#get-in-touch)
 
 Want to go deeper? Here are the resources that inspired and complement this project.
 
@@ -611,9 +678,13 @@ Want to go deeper? Here are the resources that inspired and complement this proj
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-#### ⚡ Quick Navigation: [⬅️ Next Steps & Resources](#next-steps--resources) | [⬆️ Back to Top](#mcp-release-notifier)
+
 
 ## Get in Touch
+
+#### ⚡ Quick Navigation: [⬅️ Next Steps & Resources](#next-steps--resources) | [⬆️ Back to Top](#mcp-release-notifier)
+
+
 📩 Contact: hugoferro.business (at) gmail.com
 
 🔗 [LinkedIn](https://www.linkedin.com/in/hugo-ferro-1434b414/)
@@ -621,7 +692,9 @@ Want to go deeper? Here are the resources that inspired and complement this proj
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
-**By the way, did you hear about A2A?**
+
+
+## By the way, did you hear about A2A?
 #### Watch this 10 minute video from IBM - A2A vs MCP: AI Agent Communication Explained
 [![Watch from IBM - A2A vs MCP: AI Agent Communication Explained](https://img.youtube.com/vi/BMDFPOyezH4/maxresdefault.jpg)](https://youtu.be/BMDFPOyezH4)
 
