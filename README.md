@@ -487,26 +487,159 @@ Three things to note here:
 
 #### ⚡ Quick Navigation: [⬅️ Part 02 — 🖥️🔧 Adding Tools](#part-2) | [Part 04 — 🖥️📚 Adding Resources ➡️](#part-4)
 
-> 📒 **What you'll learn:** How to use the MCP Inspector to test your server — call Tools manually and verify their output.
+> 📒 **What you'll learn:** How to use the MCP Inspector to test your tools — call them manually, inspect their output, and verify the full flow before wiring anything to a client.
+
+---
+
 
 ### What is the MCP Inspector?
 
-The MCP Inspector is an official browser-based UI that lets you interact with any MCP server without writing a client. It's the fastest way to verify your server works before wiring it to anything else.
+The MCP Inspector is an official browser-based UI that lets you interact with any MCP server without writing a client. Think of it as **Postman for MCP** — it's the fastest way to verify your server works before connecting it to anything else.
+
+---
+
 
 ### Run it
 
 ```bash
-mcp dev MCP_Server/server.py
+mcp dev MCP_Server/server_v2.py
 ```
 
-Open the URL shown in the terminal (usually `http://localhost:5173`).
+You should see something like this in your terminal:
 
-### What to test
+![Terminal running mcp dev](assets/part_03/screenshot_terminal.jpg)
 
-1. **Tools** → call `read_last_release` → verify it returns the JSON
-2. **Tools** → call `create_pdf` with fake data → verify a PDF appears in `output/`
+Open the URL shown in the terminal (in this case is `http://localhost:6274`).
 
-*(screenshots coming soon)*
+---
+
+
+### Connect to your server
+
+On the connection screen, verify the pre-filled fields and click **Connect**:
+
+- **1) Command** — `py` on Windows, `python` or `python3` on macOS/Linux
+- **2) Arguments** — path to your server file: `MCP_Server/server_v2.py`
+- **3) Connect** — click to establish the connection
+
+![Connection screen](assets/part_03/screenshot_connect_button.jpg)
+
+---
+
+
+### Navigate to Tools
+
+Once connected, click **Tools** in the top navigation bar.
+
+![Tools button highlighted](assets/part_03/screenshot_connected_tools_btn.jpg)
+
+Then click **List Tools** to fetch the tools registered on your server.
+
+![List Tools button](assets/part_03/screenshot_connected_list_tools_btn.jpg)
+
+You should now see both tools available — `read_last_release` and `create_pdf`.
+
+![Available tools](assets/part_03/screenshot_connected_available_tools.jpg)
+
+---
+
+
+### Test 1 — `read_last_release`
+
+Click **`read_last_release`** to select it.
+
+This tool takes no parameters — just click **Run Tool**.
+
+- **1) `read_last_release`** — select tool
+- **2) Run Tool** — click to execute
+
+![read_last_release selected](assets/part_03/screenshot_connected_read_last_release_1.jpg)
+
+The result should be the JSON content of the latest file in `release_data/`:
+
+![read_last_release result](assets/part_03/screenshot_connected_read_last_release_2.jpg)
+
+```json
+{
+  "action": "published",
+  "release": {
+    "tag_name": "v1.2.6760",
+    "name": "Release v1.2.6760",
+    "body": "## What's Changed? \n- Fix login bug\n- Add dark mode\n- Improve performance",
+    "published_at": "2025-05-23T10:00:00Z",
+    "html_url": "https://github.com/user/repo/releases/tag/v1.2.0"
+  },
+  "repository": {
+    "name": "mcp-release-notifier",
+    "full_name": "user/mcp-release-notifier",
+    "html_url": "https://github.com/user/mcp-release-notifier"
+  }
+}
+```
+
+✅ Tool working correctly.
+
+---
+
+
+### Test 2 — `create_pdf`
+
+Click **`create_pdf`** to select it.
+
+![create_pdf button](assets/part_03/screenshot_connected_create_pdf_1.jpg)
+
+This tool requires four parameters. Fill them in with any test values:
+
+| Parameter | Example value |
+|---|---|
+| `version` | `123` |
+| `repo_name` | `my_repo/example` |
+| `release_notes` | `This is a demo!` |
+| `published_at` | `2026-05-26` |
+
+Then click **Run Tool**.
+
+![create_pdf parameters filled](assets/part_03/screenshot_connected_create_pdf_2.jpg)
+
+You should see **Tool Result: Success** with the output path:
+
+![create_pdf result](assets/part_03/screenshot_connected_create_pdf_3.jpg)
+
+```json
+{
+  "success": true,
+  "file": "release_123_20260526_145605.pdf",
+  "path": "C:\\Users\\...\\MCP_Server\\output\\release_123_20260526_145605.pdf"
+}
+```
+
+Open the `output/` folder in your project — the PDF should be there. Open it to confirm the content matches what you passed in:
+
+![Output folder in VSCode](assets/part_03/screenshot_output_folder.jpg)
+
+✅ Both tools verified end-to-end.
+
+---
+
+
+### What to keep in mind
+
+> ⚠️ The MCP Inspector sends one tool call at a time — it's a manual testing environment, not an AI agent. In later parts, the AI client will chain these calls automatically based on the task.
+
+❎ When you're done, press `Ctrl + C` in the terminal to stop the server.
+
+---
+
+
+### 🎮 Quiz
+
+*(coming soon)*
+
+---
+
+
+> 💡 **MCP Curiosity**
+> The MCP Inspector is itself an MCP client — it implements the full protocol to discover and call tools, just like your future AI-powered client will. The difference is that a human drives it here, not a model.
 
 [↑ Back to Table of Contents](#table-of-contents)
 
