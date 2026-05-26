@@ -38,7 +38,7 @@ Think of it as a **warm-up project**: a hands-on way to get comfortable with MCP
 - [Get in Touch](#get-in-touch)
 
 ---
-
+#### ⚡ Quick Navigation: [⬅️ Table of Contents](#table-of-contents) | [Project Architecture ➡️](#project-architecture)
 ## What is MCP?
 
 Imagine an AI as a person locked in a dark room. They can think, reason, and answer questions — but only based on what they already know, plus the context of the current conversation. No internet, no smartphone, no real-time data. *Just memory — their training data and the context they've been given.*
@@ -67,9 +67,13 @@ MCP exposes three primitives:
 
 This project uses all three.
 
+### Watch this 10 minute video from IBM - MCP vs API: Simplifying AI Agent Integration with External Data
+[![Watch from IBM - MCP vs API: Simplifying AI Agent Integration with External Data](https://img.youtube.com/vi/7j1t3UZA1TY/maxresdefault.jpg)](https://youtu.be/7j1t3UZA1TY)
+
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ What is MCP?](#what-is-mcp) | [Requirements ➡️](#requirements)
 
 ## Project Architecture
 🚨🚨🚨
@@ -93,6 +97,7 @@ GitHub Release
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Project Architecture](#project-architecture) | [Setup ➡️](#setup)
 
 ## Requirements
 
@@ -104,6 +109,7 @@ GitHub Release
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Requirements](#requirements) | [Project Structure ➡️](#project-structure)
 
 ## Setup
 
@@ -132,6 +138,7 @@ source venv/bin/activate
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Setup](#setup) | [Part 01 ➡️](#part-1)
 
 ## Project Structure
 🚨🚨🚨
@@ -157,8 +164,11 @@ mcp-release-notifier/
 
 ---
 
+#### ⚡ Quick Navigation: [⬅️ Project Structure](#project-structure) | [Part 02 — 🖥️🔧 Adding Tools ➡️](#part-2)
+
 <a name="part-1"></a>
-## Part 01 — 🖥️ MCP Server Setup
+## Part 01 — 🖥️ MCP Server Setup  
+
 
 > **What you'll learn:** How to scaffold a minimal MCP server — valid, runnable, but intentionally empty.
 
@@ -275,15 +285,163 @@ Once connected — no tools, no resources, nothing yet. But the server is alive 
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Part 01 — 🖥️ MCP Server Setup](#part-1) | [Part 03 — 🖥️🔧🔍 Testing Tools ➡️](#part-3)
 
 <a name="part-2"></a>
 ## Part 02 — 🖥️🔧 Adding Tools
 
+> **What you'll learn:** How to define and register tools in an MCP server — and why the registration step matters.
+
+---
+
+### Theory
+
+In MCP, a **Tool** is a callable function the AI can invoke — something with side effects, like reading a file or generating a PDF.
+
+But just defining a Python function isn't enough. The MCP server needs to know the function exists. That registration step is what makes the difference between a plain Python function and an MCP tool.
+
+In this part we'll add two tools to our server:
+
+- `read_last_release` — reads the latest release JSON from `release_data/`
+- `create_pdf` — generates a PDF and saves it to `output/`
+
+The folder structure looks like this:
+
+![Input and output folders](assets/part_02/screenshot_input_output_folders.jpg)
+
+---
+
+### Install dependencies
+
+```bash
+pip install reportlab
+```
+
+> 💡 **What is ReportLab?**
+> ReportLab is a Python library for generating PDFs programmatically. Our `create_pdf` tool will use it to build a structured PDF from the release notes data.
+
+---
+
+### Code walkthrough
+
+> 📄 **File:** `MCP_Server/server_v2.py`
+
+#### Step 1 — Imports
+
+```python
+# 1 — Standard library
+import json
+from pathlib import Path
+from datetime import datetime
+
+# 2 — MCP
+from mcp.server.fastmcp import FastMCP
+
+# 3 — ReportLab
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+```
+
+**# 1 — Standard library:**
+`json` handles reading the release JSON files. `Path` gives us a clean, cross-platform way to work with file paths. `datetime` is used to timestamp the generated PDF filenames.
+
+**# 2 — MCP:**
+Already covered in Part 01 — this is the `FastMCP` class that powers our server.
+
+**# 3 — ReportLab:**
+`A4` defines the page size. `SimpleDocTemplate` is the PDF document builder. `Paragraph` and `Spacer` are layout elements — text blocks and vertical spacing. `getSampleStyleSheet` provides a set of pre-built text styles (Title, Heading, Normal).
+
+---
+
+#### Step 2 — Project paths
+
+```python
+# ─────────────────────────────────────────────
+# ⚙️ CONFIGURATION
+# ─────────────────────────────────────────────
+BASE_DIR = Path(__file__).parent
+RELEASE_DATA_DIR = BASE_DIR / "release_data"
+OUTPUT_DIR = BASE_DIR / "output"
+OUTPUT_DIR.mkdir(exist_ok=True)
+```
+
+`BASE_DIR` is the directory where `server_v2.py` lives. Everything else is relative to it — `release_data/` is where the input JSON files come from, and `output/` is where generated PDFs will be saved. `OUTPUT_DIR.mkdir(exist_ok=True)` ensures the folder is created automatically if it doesn't exist yet.
+
+---
+
+#### Step 3 — Define the functions (plain Python)
+
+Before registering anything with MCP, let's define the two functions as plain Python:
+
+```python
+# read_last_release — reads the latest JSON from release_data/
+def read_last_release() -> dict: ...
+
+# create_pdf — generates a PDF and saves it to output/
+def create_pdf(version: str, repo_name: str, release_notes: str, published_at: str) -> dict: ...
+```
+
+> ⚠️ At this point these are just regular Python functions. The MCP server has no idea they exist — nothing has been registered yet. We'll fix that in the next step.
+
+> 📄 **Full implementation:** `MCP_Server/server_v2.py`
+
+---
+
+#### Step 4 — Register the tools with MCP
+
+To expose a function as an MCP tool, we add the `@mcp.tool()` decorator:
+
+```python
+# ─────────────────────────────────────────────
+# 🔧 TOOL 1 — read last release
+# ─────────────────────────────────────────────
+@mcp.tool()
+def read_last_release() -> dict:
+    """Reads the most recent release payload from release_data/."""
+    ...
+
+# ─────────────────────────────────────────────
+# 🔧 TOOL 2 — create PDF
+# ─────────────────────────────────────────────
+@mcp.tool()
+def create_pdf(version: str, repo_name: str, release_notes: str, published_at: str) -> dict:
+    """
+    Generates a PDF with the release notes.
+    Returns the output filename.
+
+    Args:
+        version: The release version tag (e.g. 'v1.2.0')
+        repo_name: The repository name (e.g. 'mcp-release-notifier')
+        release_notes: The full release notes text
+        published_at: ISO 8601 timestamp of the release
+    """
+    ...
+```
+
+Three things to note here:
+
+**`@mcp.tool()`** — `mcp` is not a generic name. It refers to the server instance we created in Part 01: `mcp = FastMCP("release-notifier")`. The decorator registers the function with that specific server.
+
+**`@mcp.tool()` vs `@mcp.tool(description="...")`** — Both work. The docstring approach (used here) is more Pythonic and keeps the description close to the code. Passing `description=` directly in the decorator is an alternative — pick the one that fits your style.
+
+**Docstrings matter for AI** — The description at the top of each function, and the `Args:` block for each parameter, are not just for human readers. FastMCP exposes them to the AI model so it knows what each tool does and how to call it correctly. The clearer the description, the better the model performs.
+
+---
+
+### 🎮 Quiz
+
 *(coming soon)*
+
+---
+
+> 💡 **MCP Curiosity**
+> Every MCP server publishes a machine-readable catalog — `tools/list`, `resources/list`, `prompts/list`. This means an AI agent can discover new capabilities at runtime without any code changes on the client side.
 
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Part 02 — 🖥️🔧 Adding Tools](#part-2) | [Part 04 — 🖥️📚 Adding Resources ➡️](#part-4)
 
 <a name="part-3"></a>
 ## Part 03 — 🖥️🔧🔍 Testing Tools
@@ -312,6 +470,7 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Part 03 — 🖥️🔧🔍 Testing Tools](#part-3) | [Part 05 — 🖥️📚🔍 Testing Resources ➡️](#part-5)
 
 <a name="part-4"></a>
 ## Part 04 — 🖥️📚 Adding Resources
@@ -321,6 +480,7 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Part 04 — 🖥️📚 Adding Resources](#part-4) | [Part 06 — 🖥️✍️ Adding Prompts ➡️](#part-6)
 
 <a name="part-5"></a>
 ## Part 05 — 🖥️📚🔍 Testing Resources
@@ -334,6 +494,7 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Part 05 — 🖥️📚🔍 Testing Resources](#part-5) | [Part 07 — 🖥️✍️🔍 Testing Prompts ➡️](#part-7)
 
 <a name="part-6"></a>
 ## Part 06 — 🖥️✍️ Adding Prompts
@@ -343,6 +504,7 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Part 06 — 🖥️✍️ Adding Prompts](#part-6) | [Part 08 — 🔌 MCP Client Setup ➡️](#part-8)
 
 <a name="part-7"></a>
 ## Part 07 — 🖥️✍️🔍 Testing Prompts
@@ -352,6 +514,7 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Part 07 — 🖥️✍️🔍 Testing Prompts](#part-7) | [Part 09 — 🔌🔍 Testing the Client ➡️](#part-9)
 
 <a name="part-8"></a>
 ## Part 08 — 🔌 MCP Client Setup
@@ -361,6 +524,7 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Part 08 — 🔌 MCP Client Setup](#part-8) | [Part 10 — ⚡ FastAPI Webhook ➡️](#part-10)
 
 <a name="part-9"></a>
 ## Part 09 — 🔌🔍 Testing the Client
@@ -370,6 +534,7 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Part 09 — 🔌🔍 Testing the Client](#part-9) | [Part 11 — 🌐 Cloudflared ➡️](#part-11)
 
 <a name="part-10"></a>
 ## Part 10 — ⚡ FastAPI Webhook
@@ -379,6 +544,7 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Part 10 — ⚡ FastAPI Webhook](#part-10) | [Part 12 — 🐙 GitHub Webhook ➡️](#part-12)
 
 <a name="part-11"></a>
 ## Part 11 — 🌐 Cloudflared
@@ -388,6 +554,7 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Part 11 — 🌐 Cloudflared](#part-11) | [Part 13 — 🔗 Full Pipeline ➡️](#part-13)
 
 <a name="part-12"></a>
 ## Part 12 — 🐙 GitHub Webhook
@@ -397,6 +564,7 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Part 12 — 🐙 GitHub Webhook](#part-12) | [Part 14 — 🎮 Discord Setup ➡️](#part-14)
 
 <a name="part-13"></a>
 ## Part 13 — 🔗 Full Pipeline
@@ -406,6 +574,7 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Part 13 — 🔗 Full Pipeline](#part-13) | [Part 15 — 📤 Sending the PDF ➡️](#part-15)
 
 <a name="part-14"></a>
 ## Part 14 — 🎮 Discord Setup
@@ -415,6 +584,7 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Part 14 — 🎮 Discord Setup](#part-14) | [Next Steps & Resources ➡️](#next-steps--resources)
 
 <a name="part-15"></a>
 ## Part 15 — 📤 Sending the PDF
@@ -424,6 +594,7 @@ Open the URL shown in the terminal (usually `http://localhost:5173`).
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Part 15 — 📤 Sending the PDF](#part-15) | [Get in Touch ➡️](#get-in-touch)
 
 ## Next Steps & Resources
 
@@ -440,10 +611,18 @@ Want to go deeper? Here are the resources that inspired and complement this proj
 [↑ Back to Table of Contents](#table-of-contents)
 
 ---
+#### ⚡ Quick Navigation: [⬅️ Next Steps & Resources](#next-steps--resources) | [⬆️ Back to Top](#mcp-release-notifier)
 
 ## Get in Touch
 📩 Contact: hugoferro.business (at) gmail.com
 
 🔗 [LinkedIn](https://www.linkedin.com/in/hugo-ferro-1434b414/)
+
+[↑ Back to Table of Contents](#table-of-contents)
+
+---
+**By the way, did you hear about A2A?**
+#### Watch this 10 minute video from IBM - A2A vs MCP: AI Agent Communication Explained
+[![Watch from IBM - A2A vs MCP: AI Agent Communication Explained](https://img.youtube.com/vi/BMDFPOyezH4/maxresdefault.jpg)](https://youtu.be/BMDFPOyezH4)
 
 [↑ Back to Table of Contents](#table-of-contents)
