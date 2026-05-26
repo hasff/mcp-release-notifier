@@ -109,25 +109,5 @@ def get_release_by_id(id: str) -> str:
 
 
 
-# ─────────────────────────────────────────────
-# ✍️ PROMPT — template for generating release notes 
-# ─────────────────────────────────────────────
-@mcp.prompt()
-def generate_release_notes(version: str, changes: str) -> str:
-    """Prompt template to generate professional release notes."""
-    return (f"""
-You are a technical writer. Generate professional release notes for version {version}.
-
-<Raw changes>
-{changes}
-</Raw changes>
-
-Write clear, concise release notes suitable for a developer audience.
-    """)
-
-
-# ─────────────────────────────────────────────
-# MAIN
-# ─────────────────────────────────────────────
 if __name__ == "__main__":
     mcp.run()
