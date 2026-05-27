@@ -812,7 +812,7 @@ def get_release_by_id(id: str) -> str:
     data = json.loads(path.read_text(encoding="utf-8"))
     return data["release"]["body"]
 ```
-> ⚠️ **Production note:** Error handling is intentionally minimal to keep the focus on MCP concepts. Worth knowing: proper error messages actually help the model — if the `id` is malformed or not found, a descriptive error gives the LLM enough context to self-correct and retry. The model reads your exceptions! 🤯
+> ⚠️ **Production note:** Error handling is intentionally minimal to keep the focus on MCP concepts. In production you'd want proper exception handling and logging.
 
 **`"releases://by/{id}"`** — the `{id}` placeholder makes this a template resource. FastMCP extracts the value from the URI and passes it to `id: str` automatically.
 
@@ -984,7 +984,72 @@ Two things to observe here:
 
 #### ⚡ Quick Navigation: [⬅️ Part 05 — 🖥️📚🔍 Testing Resources](#part-5) | [Part 07 — 🖥️✍️🔍 Testing Prompts ➡️](#part-7)
 
+> 📒 **What you'll learn:** How to define and register prompts in an MCP server — and why they're more powerful than they first appear.
+
+---
+
+
+### Theory
+
+In MCP, a **Prompt** is a reusable message template that clients can retrieve and pass to an AI model as the starting point for a task.
+
+Think of it like a **culinary recipe**: the ingredients are the parameters you pass in, and the recipe itself is the structured set of instructions that tells the AI exactly how to proceed — what role to adopt, what to produce, and how to format the result. Without the recipe, you might still end up with something edible. With it, you get a consistent, professional dish every time.
+
+This is where the real value of MCP Prompts lies: **not just in the text itself, but in the instructions baked into it**. A well-crafted prompt template shapes the model's behaviour — defining its persona, framing the task, and guiding the output format — so every client that uses it gets the same quality result, without having to reinvent the prompt from scratch.
+
+In practice, this means:
+
+- Prompts live on the **server**, not scattered across client code
+- Any client that connects can **discover and reuse** them via `prompts/list`
+- Changing the prompt in one place **propagates everywhere** — no need to update each client
+
+---
+
+
+### Code walkthrough
+
+> 📄 **File:** `MCP_Server/server_v4.py`
+
+Prompts are registered with `@mcp.prompt()` — the same pattern as `@mcp.tool()` and `@mcp.resource()`.
+
+```python
+# ─────────────────────────────────────────────
+# ✍️ PROMPT — template for generating release notes 
+# ─────────────────────────────────────────────
+@mcp.prompt()
+def generate_release_notes(version: str, changes: str) -> str:
+    """Prompt template to generate professional release notes."""
+    return (f"""
+You are a technical writer. Generate professional release notes for version {version}.
+
+<Raw changes>
+{changes}
+</Raw changes>
+
+Write clear, concise release notes suitable for a developer audience.
+    """)
+```
+
+**`@mcp.prompt()`** — registers the function with the MCP server, making it discoverable via `prompts/list`.
+
+**`version` and `changes`** — parameters injected into the template at call time. The client (or the AI itself) supplies these values when requesting the prompt.
+
+**The docstring** — exposed to clients as the prompt description, just like with tools.
+
+**The return value** — a fully formed string ready to be sent to the model. Notice it's not just a placeholder: it sets a **persona** (`You are a technical writer`), provides **context** (the raw changes), and defines the **expected output** (clear, concise, developer-focused). That's the recipe in action.
+
+---
+
+
+### 🎮 Quiz
+
 *(coming soon)*
+
+---
+
+
+> 💡 **MCP Curiosity**
+> Prompts in MCP can return not just plain strings, but a list of `Message` objects — allowing multi-turn conversation starters, with alternating user/assistant turns already pre-filled. For complex workflows, this means the model can be handed a partially completed conversation and pick up from there.
 
 [↑ Back to Table of Contents](#table-of-contents)
 
@@ -996,7 +1061,139 @@ Two things to observe here:
 
 #### ⚡ Quick Navigation: [⬅️ Part 06 — 🖥️✍️ Adding Prompts](#part-6) | [Part 08 — 🔌 MCP Client Setup ➡️](#part-8)
 
+> 📒 **What you'll learn:** How to test prompts in the MCP Inspector — and why what you see here is just the raw template, not the finished dish.
+
+---
+
+
+### Run it
+
+```bash
+mcp dev MCP_Server/server_v4.py
+```
+
+Open the URL shown in the terminal and connect:
+
+- **Command** — `py` on Windows, `python` or `python3` on macOS/Linux
+- **Arguments** — `MCP_Server/server_v4.py`
+- Click **Connect**
+
+---
+
+
+### Navigate to Prompts
+
+Once connected, click **Prompts** in the top navigation bar, then click **List Prompts** to fetch the prompts registered on your server.
+
+![Prompts navigation](assets/part_07/screenshot_prompts_1.jpg)
+
+1) **Prompts** — click to open the prompts section
+2) **List Prompts** — click to fetch registered prompts
+
+---
+
+
+### Select the prompt
+
+After clicking **List Prompts**, `generate_release_notes` will appear. Click it to open the prompt form on the right.
+
+![generate_release_notes selected](assets/part_07/screenshot_prompts_2.jpg)
+
+1) **List Prompts** — already clicked
+2) **`generate_release_notes`** — click to select it; the parameter form appears on the right
+
+---
+
+
+### Fill in the parameters and run
+
+Fill in the two parameters with any test values, then click **Get Prompt**.
+
+![Prompt parameters and result](assets/part_07/screenshot_prompts_3.jpg)
+
+1) **`version`** — e.g. `567`
+2) **`changes`** — e.g. `Visual layout changed. Bug fixed on saving descriptions.`
+3) **Get Prompt** — click to execute
+
+The result on the right shows the resolved prompt as a MCP message object:
+
+```json
+{
+  "description": "Prompt template to generate professional release notes.",
+  "messages": [
+    {
+      "role": "user",
+      "content": {
+        "type": "text",
+        "text": "\nYou are a technical writer. Generate professional release notes for version 567.\n\n<Raw changes>\nVis..."
+      }
+    }
+  ]
+}
+```
+
+✅ Prompt retrieved and parameters correctly injected.
+
+---
+
+
+### What you're actually seeing here
+
+Not very exciting, right? And that's expected.
+
+What the Inspector shows is just the **raw template with the parameters injected** — the recipe card, not the cooked meal. The model hasn't seen it yet. No release notes have been generated.
+
+The real value kicks in when a client:
+1. Calls `prompts/get` to retrieve this template
+2. Passes it as the user message to the Claude API
+3. Gets back a polished, professional release notes document
+
+That's the pipeline we're building. The Inspector is just confirming the ingredient list is correct before we start cooking.
+
+---
+
+
+### What to keep in mind
+
+> ⚠️ The MCP Inspector shows the prompt **before** it reaches a model — it's a static preview, not an AI completion. To see the output, you'd need to pass this message to the Claude API directly.
+
+❎ When you're done, press `Ctrl + C` in the terminal to stop the server.
+
+---
+
+
+### 🎮 Quiz
+
 *(coming soon)*
+
+---
+
+
+> 💡 **MCP Curiosity**
+> Because prompts are server-side, they can be versioned, A/B tested, and updated without touching client code. In a multi-agent system, this means all agents automatically pick up prompt improvements the next time they call `prompts/get` — no redeploys needed on the client side.
+
+---
+
+
+
+### 🖥️ Server complete — what we built
+
+Parts 01–07 covered the full MCP server. Before moving to the client, here's a quick recap of the three primitives and who actually calls them:
+
+| Primitive | Decorator | Who calls it | Purpose |
+|---|---|---|---|
+| **Tool** | `@mcp.tool()` | The model — autonomously | Actions with side effects |
+| **Resource** | `@mcp.resource()` | The MCP client / human | Read-only data access |
+| **Prompt** | `@mcp.prompt()` | The MCP client / human | Reusable message templates |
+
+> 💡 **Tools and error handling:** Because tools are called autonomously by the model, the errors they return are part of the model's context — it reads them. A descriptive error like `"Invalid version format: '1.2' does not match expected pattern 'v1.2.0'"` gives the model enough information to self-correct and retry `create_pdf` with the right value. Vague errors produce vague behaviour. The model reads your exceptions and can act accordingly!!! 🤯🤯🤯
+>
+> Resources and prompts don't share this property — their errors are returned to the client, not the model.
+
+
+The server is a **capability provider** — it doesn't decide when or how its primitives are used. That intelligence lives on the other side.
+
+Which brings us to Part 08. 👇
 
 [↑ Back to Table of Contents](#table-of-contents)
 
