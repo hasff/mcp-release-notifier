@@ -1032,7 +1032,7 @@ Write clear, concise release notes suitable for a developer audience.
 
 **`@mcp.prompt()`** — registers the function with the MCP server, making it discoverable via `prompts/list`.
 
-**`version` and `changes`** — parameters injected into the template at call time. The client (or the AI itself) supplies these values when requesting the prompt.
+**`version` and `changes`** — parameters injected into the template at call time. The client supplies these values when requesting the prompt.
 
 **The docstring** — exposed to clients as the prompt description, just like with tools.
 
