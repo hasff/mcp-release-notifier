@@ -777,7 +777,7 @@ def list_releases() -> str:
     ids = [f.stem for f in files]  # e.g. ["release_20260524_103042", ...]
     return json.dumps({"releases": ids, "count": len(ids)})
 ```
-> ⚠️ **Production note:** Error handling is intentionally minimal to keep the focus on MCP concepts. Worth knowing: proper error messages actually help the model — if a tool call fails, a descriptive error gives the LLM enough context to self-correct and retry. The model reads your exceptions! 🤯
+> ⚠️ **Production note:** Error handling is intentionally minimal to keep the focus on MCP concepts. In production you'd want proper exception handling and logging.
 
 **`@mcp.resource("releases://list", ...)`** — registers a static resource at a fixed URI.
 
@@ -812,7 +812,7 @@ def get_release_by_id(id: str) -> str:
     data = json.loads(path.read_text(encoding="utf-8"))
     return data["release"]["body"]
 ```
-> ⚠️ **Production note:** Error handling is intentionally minimal to keep the focus on MCP concepts. Worth knowing: proper error messages actually help the model — if a tool call fails, a descriptive error gives the LLM enough context to self-correct and retry. The model reads your exceptions! 🤯
+> ⚠️ **Production note:** Error handling is intentionally minimal to keep the focus on MCP concepts. Worth knowing: proper error messages actually help the model — if the `id` is malformed or not found, a descriptive error gives the LLM enough context to self-correct and retry. The model reads your exceptions! 🤯
 
 **`"releases://by/{id}"`** — the `{id}` placeholder makes this a template resource. FastMCP extracts the value from the URI and passes it to `id: str` automatically.
 
