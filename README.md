@@ -1048,8 +1048,8 @@ Write clear, concise release notes suitable for a developer audience.
 ---
 
 
-> 💡 **MCP Curiosity**
-> Prompts in MCP can return not just plain strings, but a list of `Message` objects — allowing multi-turn conversation starters, with alternating user/assistant turns already pre-filled. For complex workflows, this means the model can be handed a partially completed conversation and pick up from there.
+> 💡 **MCP Curiosity**  
+> Prompts in MCP can include much more than plain strings — including images and embedded resources, allowing models to receive richer multimodal context directly inside the prompt.
 
 [↑ Back to Table of Contents](#table-of-contents)
 
