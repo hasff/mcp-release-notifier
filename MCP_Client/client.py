@@ -23,7 +23,7 @@ from pydantic import AnyUrl
 # ⚙️ CONFIGURATION
 # ─────────────────────────────────────────────
 SERVER_SCRIPT   = "MCP_Server/server_v4.py"
-CLAUDE_MODEL    = "claude-sonnet-4-20250514"
+CLAUDE_MODEL    = "claude-haiku-4-5"
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 assert ANTHROPIC_API_KEY, "Error: ANTHROPIC_API_KEY not found. Check your .env file."
@@ -290,8 +290,10 @@ if __name__ == "__main__":
     # test_tools()
     # test_resources()
     # test_prompts()
-    
+
     # test_full_pipeline()
+
+    pass
 
 
 
