@@ -29,13 +29,17 @@ Think of it as a **warm-up project**: a hands-on way to get comfortable with MCP
 - [Part 06 — 🖥️✍️ Adding Prompts](#part-6)
 - [Part 07 — 🖥️✍️🔍 Testing Prompts](#part-7)
 - [Part 08 — 🔌 MCP Client Setup](#part-8)
-- [Part 09 — 🔌🔍 Testing the Client](#part-9)
-- [Part 10 — ⚡ FastAPI Webhook](#part-10)
-- [Part 11 — 🌐 Cloudflared](#part-11)
-- [Part 12 — 🐙 GitHub Webhook](#part-12)
-- [Part 13 — 🔗 Full Pipeline](#part-13)
-- [Part 14 — 🎮 Discord Setup](#part-14)
-- [Part 15 — 📤 Sending the PDF](#part-15)
+- [Part 09 — 🔌🔧🔍 Testing Tools](#part-9)
+- [Part 10 — 🔌📚🔍 Testing Resources](#part-10)
+- [Part 11 — 🔌✍️🔍 Testing Prompts](#part-11)
+- [Part 12 — 🔌🤖 The AI Pipeline](#part-12)
+- [Part 13 — 🔌🚀 Running the Pipeline](#part-13)
+- [Part 14 — ⚡ FastAPI Webhook](#part-14)
+- [Part 15 — 🌐 Cloudflared](#part-15)
+- [Part 16 — 🐙 GitHub Webhook](#part-16)
+- [Part 17 — 🔗 Full Pipeline](#part-17)
+- [Part 18 — 🎮 Discord Setup](#part-18)
+- [Part 19 — 📤 Sending the PDF](#part-19)
 - [Next Steps & Resources](#next-steps--resources)
 - [Get in Touch](#get-in-touch)
 
@@ -183,11 +187,11 @@ mcp-release-notifier/
 
 [↑ Back to Table of Contents](#table-of-contents)
 
+<a name="part-1"></a>
+
 ---
 
-
-
-<a name="part-1"></a>
+# 🖥️ MCP Server
 ## Part 01 — 🖥️ MCP Server Setup  
 
 #### ⚡ Quick Navigation: [⬅️ Project Structure](#project-structure) | [Part 02 — 🖥️🔧 Adding Tools ➡️](#part-2)
@@ -1197,13 +1201,14 @@ Which brings us to Part 08. 👇
 
 [↑ Back to Table of Contents](#table-of-contents)
 
+<a name="part-8"></a>
+
 ---
 
-
-<a name="part-8"></a>
+# 🔌MCP Client
 ## Part 08 — 🔌 MCP Client Setup
 
-#### ⚡ Quick Navigation: [⬅️ Part 07 — 🖥️✍️🔍 Testing Prompts](#part-7) | [Part 09 — 🔌🔍 Testing the Client ➡️](#part-9)
+#### ⚡ Quick Navigation: [⬅️ Part 07 — 🖥️✍️🔍 Testing Prompts](#part-7) | [Part 09 — 🔌🔧🔍 Testing Tools ➡️](#part-9)
 
 *(coming soon)*
 
@@ -1213,9 +1218,9 @@ Which brings us to Part 08. 👇
 
 
 <a name="part-9"></a>
-## Part 09 — 🔌🔍 Testing the Client
+## Part 09 — 🔌🔧🔍 Testing Tools
 
-#### ⚡ Quick Navigation: [⬅️ Part 08 — 🔌 MCP Client Setup](#part-8) | [Part 10 — ⚡ FastAPI Webhook ➡️](#part-10)
+#### ⚡ Quick Navigation: [⬅️ Part 08 — 🔌 MCP Client Setup](#part-8) | [Part 10 — 🔌📚🔍 Testing Resources ➡️](#part-10)
 
 *(coming soon)*
 
@@ -1225,9 +1230,9 @@ Which brings us to Part 08. 👇
 
 
 <a name="part-10"></a>
-## Part 10 — ⚡ FastAPI Webhook
+## Part 10 — 🔌📚🔍 Testing Resources
 
-#### ⚡ Quick Navigation: [⬅️ Part 09 — 🔌🔍 Testing the Client](#part-9) | [Part 11 — 🌐 Cloudflared ➡️](#part-11)
+#### ⚡ Quick Navigation: [⬅️ Part 09 — 🔌🔧🔍 Testing Tools](#part-9) | [Part 11 — 🔌✍️🔍 Testing Prompts ➡️](#part-11)
 
 *(coming soon)*
 
@@ -1237,9 +1242,9 @@ Which brings us to Part 08. 👇
 
 
 <a name="part-11"></a>
-## Part 11 — 🌐 Cloudflared
+## Part 11 — 🔌✍️🔍 Testing Prompts
 
-#### ⚡ Quick Navigation: [⬅️ Part 10 — ⚡ FastAPI Webhook](#part-10) | [Part 12 — 🐙 GitHub Webhook ➡️](#part-12)
+#### ⚡ Quick Navigation: [⬅️ Part 10 — 🔌📚🔍 Testing Resources](#part-10) | [Part 12 — 🔌🤖 The AI Pipeline ➡️](#part-12)
 
 *(coming soon)*
 
@@ -1249,9 +1254,9 @@ Which brings us to Part 08. 👇
 
 
 <a name="part-12"></a>
-## Part 12 — 🐙 GitHub Webhook
+## Part 12 — 🔌🤖 The AI Pipeline
 
-#### ⚡ Quick Navigation: [⬅️ Part 11 — 🌐 Cloudflared](#part-11) | [Part 13 — 🔗 Full Pipeline ➡️](#part-13)
+#### ⚡ Quick Navigation: [⬅️ Part 11 — 🔌✍️🔍 Testing Prompts](#part-11) | [Part 13 — 🔌🚀 Running the Pipeline ➡️](#part-13)
 
 *(coming soon)*
 
@@ -1261,9 +1266,9 @@ Which brings us to Part 08. 👇
 
 
 <a name="part-13"></a>
-## Part 13 — 🔗 Full Pipeline
+## Part 13 — 🔌🚀 Running the Pipeline
 
-#### ⚡ Quick Navigation: [⬅️ Part 12 — 🐙 GitHub Webhook](#part-12) | [Part 14 — 🎮 Discord Setup ➡️](#part-14)
+#### ⚡ Quick Navigation: [⬅️ Part 12 — 🔌🤖 The AI Pipeline](#part-12) | [Part 14 — ⚡ FastAPI Webhook ➡️](#part-14)
 
 *(coming soon)*
 
@@ -1273,9 +1278,9 @@ Which brings us to Part 08. 👇
 
 
 <a name="part-14"></a>
-## Part 14 — 🎮 Discord Setup
+## Part 14 — ⚡ FastAPI Webhook
 
-#### ⚡ Quick Navigation: [⬅️ Part 13 — 🔗 Full Pipeline](#part-13) | [Part 15 — 📤 Sending the PDF ➡️](#part-15)
+#### ⚡ Quick Navigation: [⬅️ Part 13 — 🔌🚀 Running the Pipeline](#part-13) | [Part 15 — 🌐 Cloudflared ➡️](#part-15)
 
 *(coming soon)*
 
@@ -1285,9 +1290,57 @@ Which brings us to Part 08. 👇
 
 
 <a name="part-15"></a>
-## Part 15 — 📤 Sending the PDF
+## Part 15 — 🌐 Cloudflared
 
-#### ⚡ Quick Navigation: [⬅️ Part 14 — 🎮 Discord Setup](#part-14) | [Next Steps & Resources ➡️](#next-steps--resources)
+#### ⚡ Quick Navigation: [⬅️ Part 14 — ⚡ FastAPI Webhook](#part-14) | [Part 16 — 🐙 GitHub Webhook ➡️](#part-16)
+
+*(coming soon)*
+
+[↑ Back to Table of Contents](#table-of-contents)
+
+---
+
+
+<a name="part-16"></a>
+## Part 16 — 🐙 GitHub Webhook
+
+#### ⚡ Quick Navigation: [⬅️ Part 15 — 🌐 Cloudflared](#part-15) | [Part 17 — 🔗 Full Pipeline ➡️](#part-17)
+
+*(coming soon)*
+
+[↑ Back to Table of Contents](#table-of-contents)
+
+---
+
+
+<a name="part-17"></a>
+## Part 17 — 🔗 Full Pipeline
+
+#### ⚡ Quick Navigation: [⬅️ Part 16 — 🐙 GitHub Webhook](#part-16) | [Part 18 — 🎮 Discord Setup ➡️](#part-18)
+
+*(coming soon)*
+
+[↑ Back to Table of Contents](#table-of-contents)
+
+---
+
+
+<a name="part-18"></a>
+## Part 18 — 🎮 Discord Setup
+
+#### ⚡ Quick Navigation: [⬅️ Part 17 — 🔗 Full Pipeline](#part-17) | [Part 19 — 📤 Sending the PDF ➡️](#part-19)
+
+*(coming soon)*
+
+[↑ Back to Table of Contents](#table-of-contents)
+
+---
+
+
+<a name="part-19"></a>
+## Part 19 — 📤 Sending the PDF
+
+#### ⚡ Quick Navigation: [⬅️ Part 18 — 🎮 Discord Setup](#part-18) | [Next Steps & Resources ➡️](#next-steps--resources)
 
 *(coming soon)*
 
