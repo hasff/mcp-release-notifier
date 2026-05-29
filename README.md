@@ -1210,7 +1210,255 @@ Which brings us to Part 08. 👇
 
 #### ⚡ Quick Navigation: [⬅️ Part 07 — 🖥️✍️🔍 Testing Prompts](#part-7) | [Part 09 — 🔌🔧🔍 Testing Tools ➡️](#part-9)
 
+> 📒 **What you'll learn:** How to set up an MCP client from scratch — and how it connects to the server we built in Parts 01–07.
+
+---
+
+
+### Theory
+
+So far, the server has been running in isolation — we tested it manually via the MCP Inspector.
+
+Now we build the **client**: the component that connects to the server, discovers its capabilities, and exposes them to the AI model.
+
+> 💡 **Recap from Part 01:** The server is a *capability provider* — it doesn't decide when or how its tools are used. The intelligence lives on the client side. The client is what bridges the server and the model.
+
+---
+
+
+### Wait — how does the server actually receive connections?
+
+Before wiring up the client, there's a detail worth revisiting. Back in Part 01, we ended the server with:
+
+```python
+if __name__ == "__main__":
+    mcp.run()
+```
+
+This looked simple — but `mcp.run()` actually accepts a `transport` parameter:
+
+```python
+mcp.run(transport="stdio")  # this is the default
+```
+
+The full signature is:
+
+```python
+def run(
+    transport: Literal['stdio', 'sse', 'streamable-http'] = "stdio",
+    mount_path: str | None = None
+) -> None
+```
+
+We didn't need to pass it explicitly because `"stdio"` is the default. But now that we're building the client, this matters: **our client needs to communicate over the same transport the server is listening on.**
+
+Since the server uses `stdio` by default, the client will connect via stdio too — launching the server as a subprocess and communicating through its standard input/output streams.
+
+> 💡 **Transport is just a detail — but it must match.** Client and server need to agree on the communication channel. In this project, both use `stdio`.
+
+---
+
+
+### Install dependencies
+
+If you're working in the **same virtual environment** as the server, you already have `mcp` installed — no action needed.
+
+If the client runs in a **separate virtual environment**, install it:
+
+```bash
+pip install mcp
+```
+
+> ⚠️ The `mcp` package covers both sides — server and client primitives live in the same library. The `[cli]` extra we installed in Part 01 is only needed for the MCP Inspector (dev tooling). For the client, the base package is enough.
+
+---
+
+
+### Code walkthrough
+
+> 📄 **File:** `MCP_Client/client_v1.py`
+
+#### Imports
+
+```python
+from contextlib import AsyncExitStack
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+```
+
+`AsyncExitStack` — manages multiple async resources and guarantees cleanup when the program ends, even if an error occurs. We'll come back to this below.
+
+`ClientSession` — the high-level object that exposes `list_tools()`, `call_tool()`, `read_resource()`, `get_prompt()`, etc. This is what we'll use to talk to the server.
+
+`StdioServerParameters` — defines how to launch the server subprocess (which command, which script).
+
+`stdio_client` — opens the physical stdio communication channel with the server.
+
+---
+
+
+#### Configuration
+
+```python
+SERVER_SCRIPT = "MCP_Server/server_v4.py"
+```
+
+The path to the server file. The client will launch it as a subprocess.
+
+---
+
+
+#### connect_to_mcp_server
+
+This is the core function — it connects to the server and returns a `session` object ready to use.
+
+```python
+async def connect_to_mcp_server(exit_stack: AsyncExitStack) -> ClientSession:
+    # Defines how to launch the MCP server as a subprocess (command + script path)
+    mcp_server_params = StdioServerParameters(
+        command="python",
+        args=[SERVER_SCRIPT],
+    )
+    # Spawns the server subprocess and opens the stdio communication channel.
+    # exit_stack registers it for automatic cleanup when the program ends.
+    # What stdio_client returns: a tuple of two raw streams (read, write)
+    stdio_transport = await exit_stack.enter_async_context(
+        stdio_client(mcp_server_params)
+    )
+    read_stream, write_stream = stdio_transport
+
+    # Wraps the raw streams into a high-level ClientSession object.
+    # exit_stack registers it too — same pattern, different return value.
+    # What ClientSession returns: the session itself — the object you actually use.
+    # session exposes: list_tools(), call_tool(), read_resource(), get_prompt(), etc.
+    session = await exit_stack.enter_async_context(
+        ClientSession(read_stream, write_stream)
+    )
+    # Performs the MCP handshake — client and server exchange their capabilities
+    await session.initialize()
+
+    print("✅ Connected to MCP server\n")
+    return session
+```
+
+Let's break it down step by step.
+
+---
+
+
+**Step 1 — StdioServerParameters**
+
+```python
+SERVER_SCRIPT = "MCP_Server/server_v4.py"
+
+# (...)
+
+mcp_server_params = StdioServerParameters(
+    command="python",
+    args=[SERVER_SCRIPT],
+)
+```
+
+This is the recipe for launching the server. It says: *"run `python MCP_Server/server_v4.py` as a subprocess."*
+
+Nothing has started yet — this is just configuration.
+
+---
+
+
+**Step 2 — stdio_client (the transport layer)**
+
+```python
+stdio_transport = await exit_stack.enter_async_context(
+    stdio_client(mcp_server_params)
+)
+read_stream, write_stream = stdio_transport
+```
+
+This actually spawns the server subprocess and opens the communication channel.
+
+`stdio_client` returns a tuple of two raw streams:
+- `read_stream` — bytes coming *from* the server
+- `write_stream` — bytes going *to* the server
+
+Think of this as the **cable** connecting client and server. It's low-level — just bytes in and out.
+
+> ⚠️ **Why `exit_stack.enter_async_context`?**
+> This pattern registers the resource so it gets cleaned up automatically when the program ends. `enter_async_context` calls `__aenter__` to open the resource, and stores `__aexit__` to close it later — you don't have to manage that manually.
+> 
+> It appears twice here because we have **two separate resources** to manage: the transport (the subprocess + streams) and the session (the protocol layer on top). Each needs its own lifecycle.
+>
+> 🐇 **Want to go deeper on AsyncExitStack?** → [Asynchronous Context Managers — Medium](https://medium.com/@hitorunajp/asynchronous-context-managers-f1c33d38c9e3)
+
+---
+
+
+**Step 3 — ClientSession (the protocol layer)**
+
+```python
+session = await exit_stack.enter_async_context(
+    ClientSession(read_stream, write_stream)
+)
+await session.initialize()
+```
+
+`ClientSession` wraps the raw streams and adds the MCP protocol on top — it knows how to speak MCP, not just move bytes.
+
+`session.initialize()` performs the MCP handshake: client and server exchange their capabilities (`tools/list`, `resources/list`, `prompts/list` metadata). After this step, the client knows what the server can do.
+> 🔗 **Source:** [MCP Specification — Lifecycle](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle) | Google Search: "mcp specs lifecycle"
+
+
+What you get back — `session` — is the object you'll use for everything from here on:
+
+```python
+session.list_tools()
+session.call_tool(name, args)
+session.read_resource(uri)
+session.get_prompt(name, arguments)
+```
+
+> 💡 **Transport vs Session — the analogy:**
+> The transport is the **cable**, the session is the **browser**. The browser needs the cable, but you only ever interact with the browser.
+
+---
+
+
+#### Entry point
+
+```python
+if __name__ == "__main__":
+    pass
+```
+
+The client is set up but not doing anything yet — the connection logic is in place, and we'll add the actual calls in the next parts.
+
+---
+
+
+### What we built
+
+A reusable `connect_to_mcp_server` function that:
+1. Launches the MCP server as a subprocess
+2. Opens a stdio communication channel
+3. Wraps it in a `ClientSession` with full MCP protocol support
+4. Returns a `session` ready to use
+
+In Part 09, we'll use this session to call tools directly — no AI involved yet, just verifying the connection works end-to-end.
+
+---
+
+
+### 🎮 Quiz
+
 *(coming soon)*
+
+---
+
+
+> 💡 **MCP Curiosity**
+> The `stdio` transport is not limited to local processes — it's also how Claude Desktop connects to MCP servers configured in its `claude_desktop_config.json`. When you add a server to Claude Desktop, it launches it as a subprocess and communicates via stdio, exactly like we're doing here.
+> 
+> 🔗 **Source:** [Claude Desktop - Connect to local MCP servers](https://modelcontextprotocol.io/docs/develop/connect-local-servers)
 
 [↑ Back to Table of Contents](#table-of-contents)
 

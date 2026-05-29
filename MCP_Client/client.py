@@ -1,7 +1,8 @@
 # Standard library
 import asyncio
-import json
 from contextlib import AsyncExitStack
+import json
+from pydantic import AnyUrl
 
 # MCP
 from mcp import ClientSession, StdioServerParameters
@@ -15,8 +16,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-# Other
-from pydantic import AnyUrl
+
 
 
 # ─────────────────────────────────────────────
@@ -32,21 +32,33 @@ assert ANTHROPIC_API_KEY, "Error: ANTHROPIC_API_KEY not found. Check your .env f
 # ─────────────────────────────────────────────
 # 🔌 CONNECTION — setup & cleanup
 # ─────────────────────────────────────────────
-async def create_session(exit_stack: AsyncExitStack) -> ClientSession:
-    server_params = StdioServerParameters(
+async def connect_to_mcp_server(exit_stack: AsyncExitStack) -> ClientSession:
+    # Defines how to launch the MCP server as a subprocess (command + script path)
+    mcp_server_params = StdioServerParameters(
         command="python",
         args=[SERVER_SCRIPT],
     )
+    # Opens the physical communication channel with the server subprocess.
+    # exit_stack registers it for automatic cleanup when the program ends.
+    # What stdio_client returns: a tuple of two raw streams (read, write)
     stdio_transport = await exit_stack.enter_async_context(
-        stdio_client(server_params)
+        stdio_client(mcp_server_params)
     )
-    _stdio, _write = stdio_transport
+    read_stream, write_stream = stdio_transport
+    
+    # Wraps the raw streams into a high-level ClientSession object.
+    # exit_stack registers it too — same pattern, different return value.
+    # What ClientSession returns: the session itself — the object you actually use.
+    # session exposes: list_tools(), call_tool(), read_resource(), get_prompt(), etc.
     session = await exit_stack.enter_async_context(
-        ClientSession(_stdio, _write)
+        ClientSession(read_stream, write_stream)
     )
+    # Performs the MCP handshake — client and server exchange their capabilities
     await session.initialize()
+    
     print("✅ Connected to MCP server\n")
     return session
+
 
 
 # ─────────────────────────────────────────────
@@ -55,10 +67,10 @@ async def create_session(exit_stack: AsyncExitStack) -> ClientSession:
 async def run_pipeline(release_payload: dict):
 
     async with AsyncExitStack() as stack:
-        session = await create_session(stack)
+        client_session = await connect_to_mcp_server(stack)
 
         # — List available tools and convert to Anthropic format
-        tools_result = await session.list_tools()
+        tools_result = await client_session.list_tools()
         anthropic_tools = [
             {
                 "name": t.name,
@@ -74,7 +86,7 @@ async def run_pipeline(release_payload: dict):
         #   The model is not aware of this step — it just receives the instructions.
         version     = release_payload.get("release", {}).get("tag_name", "unknown")
         raw_changes = release_payload.get("release", {}).get("body", "")
-        prompt_result = await session.get_prompt(
+        prompt_result = await client_session.get_prompt(
             "generate_release_notes",
             arguments={"version": version, "changes": raw_changes}
         )
@@ -130,7 +142,7 @@ async def run_pipeline(release_payload: dict):
             for block in response.content:
                 if block.type == "tool_use":
                     print(f"   🔧 Claude calls: {block.name}({json.dumps(block.input)})")
-                    result = await session.call_tool(block.name, block.input)
+                    result = await client_session.call_tool(block.name, block.input)
                     result_text = result.content[0].text
                     print(f"   ↳  Result: {result_text[:120]}...\n")
                     tool_results.append({
@@ -152,12 +164,12 @@ async def run_pipeline(release_payload: dict):
 # Useful to confirm the client connects and the server exposes the right tools.
 # -------------------------------------------------------------------------
 def test_tools():
-    print("🔧 test_tools")
+    print("🔧  test_tools")
     async def test_list_tools():
         async with AsyncExitStack() as stack:
-            session = await create_session(stack)
+            client_session = await connect_to_mcp_server(stack)
 
-            list_tools_result = await session.list_tools()
+            list_tools_result = await client_session.list_tools()
             tools = list_tools_result.tools
             print("Tools")
             print("-----------------------------------------------------------------")
@@ -169,7 +181,7 @@ def test_tools():
             print("read_last_release call")
             print("-----------------------------------------------------------------")
             tool_name = "read_last_release call"
-            read_last_release = await session.call_tool(tool_name)
+            read_last_release = await client_session.call_tool(tool_name)
             print(read_last_release)
             print("-----------------------------------------------------------------\n")
 
@@ -182,7 +194,7 @@ def test_tools():
                 'release_notes' : 'Fix logging \n Fix backend \n Added button in frontend.',
                 'published_at'  : '2026/05/28'
             }
-            create_pdf = await session.call_tool(tool_name, tool_args)
+            create_pdf = await client_session.call_tool(tool_name, tool_args)
             print(create_pdf)
             print("-----------------------------------------------------------------\n")
             
@@ -196,10 +208,10 @@ def test_resources():
     async def test_read_resource():
         
         async with AsyncExitStack() as stack:
-            session = await create_session(stack)
+            client_session = await connect_to_mcp_server(stack)
 
             # 🚨 STATIC RESOURCES
-            list_resources_result = await session.list_resources()
+            list_resources_result = await client_session.list_resources()
             print("Static Resources")
             print("-----------------------------------------------------------------")
             for r in list_resources_result.resources:
@@ -207,7 +219,7 @@ def test_resources():
                 print(r)
             print("-----------------------------------------------------------------\n")
 
-            result = await session.read_resource(AnyUrl("releases://list"))
+            result = await client_session.read_resource(AnyUrl("releases://list"))
             print("Static Resource result") 
             print("-----------------------------------------------------------------")
             print(result.contents[0].text)
@@ -216,7 +228,7 @@ def test_resources():
 
 
             # 🚨 TEMPLATE RESOURCES  
-            list_resource_templates_result = await session.list_resource_templates()
+            list_resource_templates_result = await client_session.list_resource_templates()
             print("Template Resources")
             print("-----------------------------------------------------------------")            
             for r in list_resource_templates_result.resourceTemplates:
@@ -228,7 +240,7 @@ def test_resources():
             uri = f"releases://by/{id}"            
             print(f"Template Resource result for uri= {uri}") 
             print("-----------------------------------------------------------------")
-            result_dynamic = await session.read_resource(AnyUrl(uri))
+            result_dynamic = await client_session.read_resource(AnyUrl(uri))
             print(result_dynamic.contents[0].text)
             print("-----------------------------------------------------------------\n\n")                                 
     asyncio.run(test_read_resource())
@@ -237,12 +249,12 @@ def test_resources():
 # Confirms the prompt template is rendered correctly with injected parameters.
 # -------------------------------------------------------------------------
 def test_prompts():
-    print("✍️ test_prompts")
+    print("✍️  test_prompts")
     async def test_get_prompt():
         async with AsyncExitStack() as stack:
-            session = await create_session(stack)
+            client_session = await connect_to_mcp_server(stack)
 
-            list_prompts_result = await session.list_prompts()
+            list_prompts_result = await client_session.list_prompts()
             prompts_list = list_prompts_result.prompts
 
             print("Prompts")
@@ -252,7 +264,7 @@ def test_prompts():
 
             print("-----------------------------------------------------------------\n")
 
-            result = await session.get_prompt(
+            result = await client_session.get_prompt(
                 "generate_release_notes",
                 arguments={"version": "v1.0.0", "changes": "- Fixed bug\n- Added feature"}
             )
