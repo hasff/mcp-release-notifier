@@ -1424,7 +1424,7 @@ await session.initialize()
 
 `session.initialize()` performs the MCP handshake: client and server exchange their capabilities (`tools/list`, `resources/list`, `prompts/list` metadata). After this step, the client knows what the server can do.
 > 🔗 **Source:** [MCP Specification — Lifecycle](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle) | **Google Search**: "mcp specs lifecycle"
-
+>
 > 🐇 **Want to go deeper on what travels on the wire?**
 > Under the hood, MCP uses JSON-RPC 2.0 — every `list_tools()`, `call_tool()`,
 > or `get_prompt()` is serialised as a JSON-RPC request sent through the transport
@@ -1434,6 +1434,16 @@ await session.initialize()
 > {"jsonrpc": "2.0", "method": "tools/call", "params": {"name": "read_last_release", "arguments": {}}, "id": 1}
 > ```
 > 🔗 [What is JSON-RPC 2.0: A Comprehensive Guide](https://www.a2aprotocol.org/en/docs/json-rpc-2-0) | **Google Search**: *"json-rpc 2.0 specification"*
+>
+> <img src="assets/imgs/worried.png" width="80" alt="ALERT">
+>
+> So many terms — here's an analogy to tie them together:
+>
+> **stdio / streamableHTTP** → the communication channel. *How* they talk. stdio is face-to-face, in the same room (same machine). streamableHTTP is by phone, across a distance (separate servers).
+>
+> **JSON-RPC 2.0** → the language. *What tongue* they speak. English, French — here it's always JSON-RPC.
+>
+> **MCP** → the subject of the conversation. *What* they actually say. "What tools do you have?", "Run this tool", "Return this resource."
 
 
 What you get back — `session` — is the object you'll use for everything from here on:
