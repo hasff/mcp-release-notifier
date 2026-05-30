@@ -1499,6 +1499,10 @@ Before diving into MCP operations logic, there's a wrapper pattern worth underst
 it will repeat in Parts 10 to 13.
 
 ```python
+import asyncio
+
+# (...)
+
 def test_tools():
     async def test_list_tools():
         async with AsyncExitStack() as stack:
