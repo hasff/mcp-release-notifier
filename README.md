@@ -11,16 +11,19 @@ This is a personal learning project — not an official Anthropic or MCP resourc
 It may contain errors, simplifications, or opinionated choices made for clarity over correctness.
 Think of it as a **warm-up project**: a hands-on way to get comfortable with MCP before tackling the recommended courses at the end of this README.
 
+
+<a name="table-of-contents_"></a>
+
 ---
 
 
 ## Table of Contents
 
-- [What is MCP?](#what-is-mcp)
-- [Project Architecture](#project-architecture)
-- [Requirements](#requirements)
-- [Setup](#setup)
-- [Project Structure](#project-structure)
+- [What is MCP?](#what-is-mcp_)
+- [Project Architecture](#project-architecture_)
+- [Requirements](#requirements_)
+- [Setup](#setup_)
+- [Project Structure](#project-structure_)
 - [Part 01 — 🖥️ MCP Server Setup](#part-1)
 - [Part 02 — 🖥️🔧 Adding Tools](#part-2)
 - [Part 03 — 🖥️🔧🔍 Testing Tools](#part-3)
@@ -40,15 +43,18 @@ Think of it as a **warm-up project**: a hands-on way to get comfortable with MCP
 - [Part 17 — 🔗 Full Pipeline](#part-17)
 - [Part 18 — 🎮 Discord Setup](#part-18)
 - [Part 19 — 📤 Sending the PDF](#part-19)
-- [Next Steps & Resources](#next-steps--resources)
-- [Get in Touch](#get-in-touch)
+- [Next Steps & Resources](#next-steps--resources_)
+- [Get in Touch](#get-in-touch_)
+
+
+<a name="what-is-mcp_"></a>
 
 ---
 
 
 ## What is MCP?
 
-#### ⚡ Quick Navigation: [⬅️ Table of Contents](#table-of-contents) | [Project Architecture ➡️](#project-architecture)
+#### ⚡ Quick Navigation: [⬅️ Table of Contents](#table-of-contents_) | [Project Architecture ➡️](#project-architecture_)
 
 
 Imagine an AI as a person locked in a dark room. They can think, reason, and answer questions — but only based on what they already know, plus the context of the current conversation. No internet, no smartphone, no real-time data. *Just memory — their training data and the context they've been given.*
@@ -80,14 +86,16 @@ This project uses all three.
 ### Watch this 10 minute video from IBM - MCP vs API: Simplifying AI Agent Integration with External Data
 [![Watch from IBM - MCP vs API: Simplifying AI Agent Integration with External Data](https://img.youtube.com/vi/7j1t3UZA1TY/maxresdefault.jpg)](https://youtu.be/7j1t3UZA1TY)
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
+
+<a name="project-architecture_"></a>
 
 ---
 
 
 ## Project Architecture
 
-#### ⚡ Quick Navigation: [⬅️ What is MCP?](#what-is-mcp) | [Requirements ➡️](#requirements)
+#### ⚡ Quick Navigation: [⬅️ What is MCP?](#what-is-mcp_) | [Requirements ➡️](#requirements_)
 
 
 🚨🚨🚨
@@ -108,14 +116,16 @@ GitHub Release
                         PDF → Discord
 ```
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
+
+<a name="requirements_"></a>
 
 ---
 
 
 ## Requirements
 
-#### ⚡ Quick Navigation: [⬅️ Project Architecture](#project-architecture) | [Setup ➡️](#setup)
+#### ⚡ Quick Navigation: [⬅️ Project Architecture](#project-architecture_) | [Setup ➡️](#setup_)
 
 
 - Python 3.10+
@@ -123,14 +133,16 @@ GitHub Release
 - A Discord server (you control)
 - An Anthropic API key → [console.anthropic.com](https://console.anthropic.com)
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
+
+<a name="setup_"></a>
 
 ---
 
 
 ## Setup
 
-#### ⚡ Quick Navigation: [⬅️ Requirements](#requirements) | [Project Structure ➡️](#project-structure)
+#### ⚡ Quick Navigation: [⬅️ Requirements](#requirements_) | [Project Structure ➡️](#project-structure_)
 
 
 
@@ -156,14 +168,16 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
+
+<a name="project-structure_"></a>
 
 ---
 
 
 ## Project Structure
 
-#### ⚡ Quick Navigation: [⬅️ Setup](#setup) | [Part 01 ➡️](#part-1)
+#### ⚡ Quick Navigation: [⬅️ Setup](#setup_) | [Part 01 ➡️](#part-1)
 
 
 🚨🚨🚨
@@ -185,7 +199,7 @@ mcp-release-notifier/
 
 > ⚠️ Each part folder will be detailed as the project progresses.
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
 
 <a name="part-1"></a>
 
@@ -194,7 +208,7 @@ mcp-release-notifier/
 # 🖥️ MCP Server
 ## Part 01 — 🖥️ MCP Server Setup  
 
-#### ⚡ Quick Navigation: [⬅️ Project Structure](#project-structure) | [Part 02 — 🖥️🔧 Adding Tools ➡️](#part-2)
+#### ⚡ Quick Navigation: [⬅️ Project Structure](#project-structure_) | [Part 02 — 🖥️🔧 Adding Tools ➡️](#part-2)
 
 
 > 📒 **What you'll learn:** How to scaffold a minimal MCP server — valid, runnable, but intentionally empty.
@@ -315,7 +329,7 @@ Once connected — no tools, no resources, nothing yet. But the server is alive 
 > 💡 **MCP Curiosity**
 > MCP was publicly released by Anthropic in November 2024 — but it was designed from the start as an **open standard**, not an Anthropic-exclusive protocol. Any AI model, any client, any server can implement it. The goal is interoperability, not lock-in.
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
 
 <a name="part-2"></a>
 
@@ -481,7 +495,7 @@ Three things to note here:
 > 💡 **MCP Curiosity**
 > Every MCP server publishes a machine-readable catalog — `tools/list`, `resources/list`, `prompts/list`. This means an AI agent can discover new capabilities at runtime without any code changes on the client side.
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
 
 <a name="part-3"></a>
 
@@ -645,7 +659,7 @@ Open the `output/` folder in your project — the PDF should be there. Open it t
 > 💡 **MCP Curiosity**
 > The MCP Inspector is itself an MCP client — it implements the full protocol to discover and call tools, just like your future AI-powered client will. The difference is that a human drives it here, not a model.
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
 
 <a name="part-4"></a>
 
@@ -841,7 +855,7 @@ releases://by/{id}         → fetch the notes for a specific one
 > 💡 **MCP Curiosity**
 > Resources are exposed via `resources/list` and `resources/read` in the MCP protocol. A client can call `resources/list` at any time to discover what's available — no hardcoding needed. This is the same discovery mechanism used by Tools (`tools/list`) and Prompts (`prompts/list`).
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
 
 <a name="part-5"></a>
 
@@ -978,7 +992,7 @@ Two things to observe here:
 > 💡 **MCP Curiosity**
 > Template resources are a pattern unique to MCP — most APIs require you to know the full URL upfront. In MCP, a client can discover that `releases://by/{id}` exists, understand its parameter from the description, and construct the URI dynamically at runtime. The model can do the same.
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
 
 <a name="part-6"></a>
 
@@ -1055,7 +1069,7 @@ Write clear, concise release notes suitable for a developer audience.
 > 💡 **MCP Curiosity**  
 > Prompts in MCP can include much more than plain strings — including images and embedded resources, allowing models to receive richer multimodal context directly inside the prompt.
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
 
 <a name="part-7"></a>
 
@@ -1199,7 +1213,7 @@ The server is a **capability provider** — it doesn't decide when or how its pr
 
 Which brings us to Part 08. 👇
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
 
 <a name="part-8"></a>
 
@@ -1464,7 +1478,7 @@ In Part 09, we'll use this session to call tools directly — no AI involved yet
 > 
 > 🔗 **Source:** [Claude Desktop - Connect to local MCP servers](https://modelcontextprotocol.io/docs/develop/connect-local-servers)
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
 
 <a name="part-9"></a>
 
@@ -1600,6 +1614,12 @@ The key names in `tool_args` must match the parameter names in the function. Fas
 
 ### Run it
 
+```python
+if __name__ == "__main__":
+    test_tools()
+    pass
+```
+
 ```bash
 py MCP_Client/client_v2.py
 ```
@@ -1670,134 +1690,303 @@ The `release_notes` string we passed in (`'Fix logging \n Fix backend \n Added b
 > 💡 **MCP Curiosity**
 > `call_tool` returns a `CallToolResult` object — not just the raw output. It includes `content` (the tool's response), `isError` (whether the tool raised an exception), and `meta`. The model reads `isError` too — if a tool fails, it can decide to retry or adjust its approach.
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
+
+<a name="part-10"></a>
 
 ---
 
 
-<a name="part-10"></a>
+
 ## Part 10 — 🔌📚🔍 Testing Resources
 
 #### ⚡ Quick Navigation: [⬅️ Part 09 — 🔌🔧🔍 Testing Tools](#part-9) | [Part 11 — 🔌✍️🔍 Testing Prompts ➡️](#part-11)
 
-*(coming soon)*
-
-[↑ Back to Table of Contents](#table-of-contents)
+> 📒 **What you'll learn:** How to read static and template resources from a Python client — and why `read_resource` works the same for both.
 
 ---
 
 
+### Theory
+
+In Part 05 we tested resources manually via the MCP Inspector. Now we do the same programmatically.
+
+The key difference from tools: resources split into **two separate lists** — static resources and template resources. They are discovered differently, but read the same way.
+
+---
+
+
+### Code walkthrough
+
+> 📄 **File:** `MCP_Client/client_v3.py`
+
+---
+
+Before diving into the resource calls, one new import is required:
+
+```python
+from pydantic import AnyUrl
+```
+
+`AnyUrl` is used to pass a validated URI to `read_resource`. Without it, the client won't accept a plain string as a resource address.
+
+---
+
+Now let's see the test code, structured in two blocks:
+
+---
+
+#### Block 1 — Static Resources
+
+```python
+# List
+list_resources_result = await client_session.list_resources()
+for r in list_resources_result.resources:
+    print(r)
+
+# Read
+result = await client_session.read_resource(AnyUrl("releases://list"))
+print(result.contents[0].text)
+```
+
+Three steps:
+
+**`client_session.list_resources()`** — asks the server for all static resources. Returns a result object.
+
+**`.resources`** — the list of resource metadata objects (name, URI, description, mimeType).
+
+**`client_session.read_resource(AnyUrl("releases://list"))`** — fetches the content of that specific resource by URI. The content lives in `result.contents[0].text`.
+
+---
+
+#### Block 2 — Template Resources
+
+```python
+# List
+list_resource_templates_result = await client_session.list_resource_templates()
+for r in list_resource_templates_result.resourceTemplates:
+    print(r)
+
+# Read
+id = "release_20260524_103042"
+uri = f"releases://by/{id}"
+result_dynamic = await client_session.read_resource(AnyUrl(uri))
+print(result_dynamic.contents[0].text)
+```
+
+Three steps:
+
+**`client_session.list_resource_templates()`** — asks the server for all template resources. 🚨 Note this time around we didn't use `list_resources()`, we used `list_resource_templates()`.
+
+**`.resourceTemplates`** — the list of template metadata objects (name, URI template, description, mimeType). 🚨 Again, `.resourceTemplates` NOT `.resources`.
+
+**`client_session.read_resource(AnyUrl(uri))`** — same call as for static resources. The `{id}` placeholder in `releases://by/{id}` is resolved by constructing the full URI before passing it in. `read_resource` itself doesn't know or care whether the URI belongs to a static or template resource — it just fetches by address.
+
+---
+
+### Run it
+
+```python
+if __name__ == "__main__":
+    # test_tools()
+    test_resources()
+    pass
+```
+
+```bash
+py MCP_Client/client_v3.py
+```
+
+
+Terminal output:
+
+```
+📚  test_resources
+✅ Connected to MCP server
+
+Static Resources
+-----------------------------------------------------------------
+name='list_releases' uri=AnyUrl('releases://list') description='Lists all available release IDs from release_data' mimeType='application/json' ...
+-----------------------------------------------------------------
+
+Static Resource result
+-----------------------------------------------------------------
+{"releases": ["release_20260524_103042"], "count": 1}
+-----------------------------------------------------------------
+
+Template Resources
+-----------------------------------------------------------------
+name='get_release_by_id' uriTemplate='releases://by/{id}' description='Returns the release notes body by id as plain text' mimeType='text/plain' ...
+-----------------------------------------------------------------
+
+Template Resource result for uri= releases://by/release_20260524_103042
+-----------------------------------------------------------------
+## What's Changed? 
+- Fix login bug
+- Add dark mode
+- Improve performance
+-----------------------------------------------------------------
+```
+
+✅ Both resource types read successfully via the Python client.
+
+---
+
+### Static vs Template — quick reference
+
+| | Static Resource | Template Resource |
+|---|---|---|
+| **List method** | `list_resources()` | `list_resource_templates()` |
+| **Access via** | `.resources` | `.resourceTemplates` |
+| **URI** | Fixed — `releases://list` | Constructed — `releases://by/{id}` |
+| **Read method** | `read_resource(AnyUrl(...))` | `read_resource(AnyUrl(...))` |
+
+---
+
+### 🎮 Quiz
+
+*(coming soon)*
+
+---
+
+> 💡 **MCP Curiosity**
+> MCP supports **dynamic tool discovery**: models can list and understand available capabilities in real-time, without pre-configuration.
+
+[↑ Back to Table of Contents](#table-of-contents_)
+
 <a name="part-11"></a>
+
+---
+
+
+
 ## Part 11 — 🔌✍️🔍 Testing Prompts
 
 #### ⚡ Quick Navigation: [⬅️ Part 10 — 🔌📚🔍 Testing Resources](#part-10) | [Part 12 — 🔌🤖 The AI Pipeline ➡️](#part-12)
 
 *(coming soon)*
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
+
+<a name="part-12"></a>
 
 ---
 
-
-<a name="part-12"></a>
 ## Part 12 — 🔌🤖 The AI Pipeline
 
 #### ⚡ Quick Navigation: [⬅️ Part 11 — 🔌✍️🔍 Testing Prompts](#part-11) | [Part 13 — 🔌🚀 Running the Pipeline ➡️](#part-13)
 
 *(coming soon)*
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
+
+<a name="part-13"></a>
 
 ---
 
 
-<a name="part-13"></a>
+
 ## Part 13 — 🔌🚀 Running the Pipeline
 
 #### ⚡ Quick Navigation: [⬅️ Part 12 — 🔌🤖 The AI Pipeline](#part-12) | [Part 14 — ⚡ FastAPI Webhook ➡️](#part-14)
 
 *(coming soon)*
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
+
+<a name="part-14"></a>
 
 ---
 
 
-<a name="part-14"></a>
+
 ## Part 14 — ⚡ FastAPI Webhook
 
 #### ⚡ Quick Navigation: [⬅️ Part 13 — 🔌🚀 Running the Pipeline](#part-13) | [Part 15 — 🌐 Cloudflared ➡️](#part-15)
 
 *(coming soon)*
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
+
+<a name="part-15"></a>
 
 ---
 
 
-<a name="part-15"></a>
+
 ## Part 15 — 🌐 Cloudflared
 
 #### ⚡ Quick Navigation: [⬅️ Part 14 — ⚡ FastAPI Webhook](#part-14) | [Part 16 — 🐙 GitHub Webhook ➡️](#part-16)
 
 *(coming soon)*
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
+
+<a name="part-16"></a>
 
 ---
 
 
-<a name="part-16"></a>
+
 ## Part 16 — 🐙 GitHub Webhook
 
 #### ⚡ Quick Navigation: [⬅️ Part 15 — 🌐 Cloudflared](#part-15) | [Part 17 — 🔗 Full Pipeline ➡️](#part-17)
 
 *(coming soon)*
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
+
+<a name="part-17"></a>
 
 ---
 
 
-<a name="part-17"></a>
+
 ## Part 17 — 🔗 Full Pipeline
 
 #### ⚡ Quick Navigation: [⬅️ Part 16 — 🐙 GitHub Webhook](#part-16) | [Part 18 — 🎮 Discord Setup ➡️](#part-18)
 
 *(coming soon)*
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
+
+<a name="part-18"></a>
 
 ---
 
 
-<a name="part-18"></a>
+
 ## Part 18 — 🎮 Discord Setup
 
 #### ⚡ Quick Navigation: [⬅️ Part 17 — 🔗 Full Pipeline](#part-17) | [Part 19 — 📤 Sending the PDF ➡️](#part-19)
 
 *(coming soon)*
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
+
+<a name="part-19"></a>
 
 ---
 
 
-<a name="part-19"></a>
+
 ## Part 19 — 📤 Sending the PDF
 
-#### ⚡ Quick Navigation: [⬅️ Part 18 — 🎮 Discord Setup](#part-18) | [Next Steps & Resources ➡️](#next-steps--resources)
+#### ⚡ Quick Navigation: [⬅️ Part 18 — 🎮 Discord Setup](#part-18) | [Next Steps & Resources ➡️](#next-steps--resources_)
 
 *(coming soon)*
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
+
+<a name="next-steps--resources_"></a>
 
 ---
+
 
 
 ## Next Steps & Resources
 
-#### ⚡ Quick Navigation: [⬅️ Part 15 — 📤 Sending the PDF](#part-15) | [Get in Touch ➡️](#get-in-touch)
+#### ⚡ Quick Navigation: [⬅️ Part 19 — 📤 Sending the PDF](#part-19) | [Get in Touch ➡️](#get-in-touch_)
 
 Want to go deeper? Here are the resources that inspired and complement this project.
 
@@ -1809,21 +1998,23 @@ Want to go deeper? Here are the resources that inspired and complement this proj
 **PDF Generation**
 - 🐍 [Python PDF Generation: From Beginner to Winner (ReportLab)](https://www.udemy.com/course/python-reportlab-from-beginner-to-winner/?referralCode=3B927E883D2E868CF221)
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
+
+<a name="get-in-touch_"></a>
 
 ---
 
 
 ## Get in Touch
 
-#### ⚡ Quick Navigation: [⬅️ Next Steps & Resources](#next-steps--resources) | [⬆️ Back to Top](#mcp-release-notifier)
+#### ⚡ Quick Navigation: [⬅️ Next Steps & Resources](#next-steps--resources_) | [⬆️ Back to Top](#mcp-release-notifier)
 
 
 📩 Contact: hugoferro.business (at) gmail.com
 
 🔗 [LinkedIn](https://www.linkedin.com/in/hugo-ferro-1434b414/)
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)
 
 ---
 
@@ -1832,4 +2023,4 @@ Want to go deeper? Here are the resources that inspired and complement this proj
 #### Watch this 10 minute video from IBM - A2A vs MCP: AI Agent Communication Explained
 [![Watch from IBM - A2A vs MCP: AI Agent Communication Explained](https://img.youtube.com/vi/BMDFPOyezH4/maxresdefault.jpg)](https://youtu.be/BMDFPOyezH4)
 
-[↑ Back to Table of Contents](#table-of-contents)
+[↑ Back to Table of Contents](#table-of-contents_)

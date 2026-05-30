@@ -142,6 +142,6 @@ def test_resources():
 # 🚀 ENTRY POINT
 # ─────────────────────────────────────────────
 if __name__ == "__main__":
-    test_tools()
-    
+    # test_tools()
+    test_resources()
     pass
