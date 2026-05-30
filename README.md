@@ -317,10 +317,10 @@ Once connected — no tools, no resources, nothing yet. But the server is alive 
 
 [↑ Back to Table of Contents](#table-of-contents)
 
+<a name="part-2"></a>
+
 ---
 
-
-<a name="part-2"></a>
 ## Part 02 — 🖥️🔧 Adding Tools
 
 #### ⚡ Quick Navigation: [⬅️ Part 01 — 🖥️ MCP Server Setup](#part-1) | [Part 03 — 🖥️🔧🔍 Testing Tools ➡️](#part-3)
@@ -483,10 +483,10 @@ Three things to note here:
 
 [↑ Back to Table of Contents](#table-of-contents)
 
+<a name="part-3"></a>
+
 ---
 
-
-<a name="part-3"></a>
 ## Part 03 — 🖥️🔧🔍 Testing Tools
 
 #### ⚡ Quick Navigation: [⬅️ Part 02 — 🖥️🔧 Adding Tools](#part-2) | [Part 04 — 🖥️📚 Adding Resources ➡️](#part-4)
@@ -647,10 +647,10 @@ Open the `output/` folder in your project — the PDF should be there. Open it t
 
 [↑ Back to Table of Contents](#table-of-contents)
 
+<a name="part-4"></a>
+
 ---
 
-
-<a name="part-4"></a>
 ## Part 04 — 🖥️📚 Adding Resources
 
 #### ⚡ Quick Navigation: [⬅️ Part 03 — 🖥️🔧🔍 Testing Tools](#part-3) | [Part 05 — 🖥️📚🔍 Testing Resources ➡️](#part-5)
@@ -843,10 +843,10 @@ releases://by/{id}         → fetch the notes for a specific one
 
 [↑ Back to Table of Contents](#table-of-contents)
 
+<a name="part-5"></a>
+
 ---
 
-
-<a name="part-5"></a>
 ## Part 05 — 🖥️📚🔍 Testing Resources
 
 #### ⚡ Quick Navigation: [⬅️ Part 04 — 🖥️📚 Adding Resources](#part-4) | [Part 06 — 🖥️✍️ Adding Prompts ➡️](#part-6)
@@ -980,10 +980,10 @@ Two things to observe here:
 
 [↑ Back to Table of Contents](#table-of-contents)
 
+<a name="part-6"></a>
+
 ---
 
-
-<a name="part-6"></a>
 ## Part 06 — 🖥️✍️ Adding Prompts
 
 #### ⚡ Quick Navigation: [⬅️ Part 05 — 🖥️📚🔍 Testing Resources](#part-5) | [Part 07 — 🖥️✍️🔍 Testing Prompts ➡️](#part-7)
@@ -1057,10 +1057,10 @@ Write clear, concise release notes suitable for a developer audience.
 
 [↑ Back to Table of Contents](#table-of-contents)
 
+<a name="part-7"></a>
+
 ---
 
-
-<a name="part-7"></a>
 ## Part 07 — 🖥️✍️🔍 Testing Prompts
 
 #### ⚡ Quick Navigation: [⬅️ Part 06 — 🖥️✍️ Adding Prompts](#part-6) | [Part 08 — 🔌 MCP Client Setup ➡️](#part-8)
@@ -1230,6 +1230,8 @@ Now we build the **client**: the component that connects to the server, discover
 
 Before wiring up the client, there's a detail worth revisiting. Back in Part 01, we ended the server with:
 
+> 📄 **File:** `MCP_Server/server_v1.py`
+
 ```python
 if __name__ == "__main__":
     mcp.run()
@@ -1255,6 +1257,8 @@ We didn't need to pass it explicitly because `"stdio"` is the default. But now t
 Since the server uses `stdio` by default, the client will connect via stdio too — launching the server as a subprocess and communicating through its standard input/output streams.
 
 > 💡 **Transport is just a detail — but it must match.** Client and server need to agree on the communication channel. In this project, both use `stdio`.
+
+> ⚠️ **HTTP + SSE and StreamableHTTP** — The MCP ecosystem is evolving fast. You may encounter tutorials referencing `sse` as a transport option. As of MCP spec 2025-03-26, HTTP + SSE has been deprecated and replaced by `streamable-http`. If you're building a remote server, use `streamable-http` instead.
 
 ---
 
@@ -1462,15 +1466,205 @@ In Part 09, we'll use this session to call tools directly — no AI involved yet
 
 [↑ Back to Table of Contents](#table-of-contents)
 
+<a name="part-9"></a>
+
 ---
 
-
-<a name="part-9"></a>
 ## Part 09 — 🔌🔧🔍 Testing Tools
 
 #### ⚡ Quick Navigation: [⬅️ Part 08 — 🔌 MCP Client Setup](#part-8) | [Part 10 — 🔌📚🔍 Testing Resources ➡️](#part-10)
 
+> 📒 **What you'll learn:** How to call MCP tools directly from a Python client — no AI involved yet, just verifying the connection and tool calls work end-to-end.
+
+---
+
+
+### Theory
+
+In Part 08 we built `connect_to_mcp_server` — a function that returns a `session` ready to use. Now we put it to work.
+
+The goal here is simple: **call the two tools we built on the server and confirm they behave as expected.** This is the client equivalent of what we did in Part 03 with the MCP Inspector — except now we're doing it programmatically.
+
+---
+
+
+### Code walkthrough
+
+> 📄 **File:** `MCP_Client/client_v2.py`
+
+---
+
+<img src="assets/imgs/dot.png" width="40" alt="ALERT">
+Before diving into MCP operations logic, there's a wrapper pattern worth understanding — 
+it will repeat in Parts 10 to 13.
+
+```python
+def test_tools():
+    async def test_list_tools():
+        async with AsyncExitStack() as stack:
+            client_session = await connect_to_mcp_server(stack)
+            # ... tool calls go here
+
+    asyncio.run(test_list_tools())
+```
+
+Three things happening here:
+
+**`async def test_list_tools()`** — the actual logic lives inside an async function
+because MCP operations are async (they involve I/O: spawning a subprocess,
+reading streams, waiting for responses).
+
+**`async with AsyncExitStack() as stack`** — creates the exit stack and passes it
+to `connect_to_mcp_server`. When the `async with` block ends — whether normally
+or due to an error — the stack closes all registered resources automatically:
+the session, the streams, the server subprocess.
+
+**`asyncio.run(test_list_tools())`** — the outer `test_tools()` is a plain
+synchronous function (our entry point). `asyncio.run()` is the bridge that
+starts the event loop and runs the async logic inside it.
+
+> 💡 This outer/inner pattern keeps the entry point synchronous (easy to call
+> from `if __name__ == "__main__"`) while the actual work stays async.
+
+---
+
+Now let's see the test code, it is structured in three blocks:
+
+---
+
+#### Block 1 — List available tools
+
+```python
+list_tools_result = await client_session.list_tools()
+tools = list_tools_result.tools
+
+for idx, tool in enumerate(tools, start=1):
+    print(f"{idx})  name: {tool.name} | description: {tool.description}")
+```
+
+Calls `session.list_tools()` — the client asks the server *"what tools do you expose?"* and gets back the full list with names and descriptions.
+
+This is the same `tools/list` call the MCP Inspector uses under the hood.
+
+---
+
+
+#### Block 2 — Call `read_last_release`
+
+```python
+tool_name = "read_last_release"
+read_last_release = await client_session.call_tool(tool_name)
+print(read_last_release)
+```
+
+Calls the tool by name with no arguments — matches the server definition:
+
+```python
+@mcp.tool()
+def read_last_release() -> dict:
+    """Reads the most recent release payload from release_data/."""
+```
+
+---
+
+
+#### Block 3 — Call `create_pdf`
+
+```python
+tool_name = "create_pdf"
+tool_args = {
+    'version'       : '444',
+    'repo_name'     : 'a/repo/name',
+    'release_notes' : 'Fix logging \n Fix backend \n Added button in frontend.',
+    'published_at'  : '2026/05/28'
+}
+create_pdf = await client_session.call_tool(tool_name, tool_args)
+print(create_pdf)
+```
+
+Here we pass arguments — and they map directly to the server-side function signature:
+
+```python
+@mcp.tool()
+def create_pdf(version: str, repo_name: str, release_notes: str, published_at: str) -> dict:
+```
+
+The key names in `tool_args` must match the parameter names in the function. FastMCP handles the mapping automatically.
+
+---
+
+
+### Run it
+
+```bash
+py MCP_Client/client_v2.py
+```
+
+Terminal output:
+
+```
+🔧  test_tools
+✅ Connected to MCP server
+
+Tools
+-----------------------------------------------------------------
+1)  name: read_last_release | description: Reads the most recent release payload from release_data/.
+2)  name: create_pdf | description: Generates a PDF with the release notes.
+-----------------------------------------------------------------
+
+read_last_release call
+-----------------------------------------------------------------
+meta=None content=[TextContent(type='text', text='{"action": "published", ...}')] isError=False
+-----------------------------------------------------------------
+
+create_pdf call
+-----------------------------------------------------------------
+meta=None content=[TextContent(type='text', text='{"success": true, "file": "release_444_20260529_173135.pdf", ...}')] isError=False
+-----------------------------------------------------------------
+```
+
+✅ Both tools called successfully via the MCP Client.
+
+---
+
+
+### Result — the generated PDF
+
+The `create_pdf` call produced a real PDF in `MCP_Server/output/`:
+
+![PDF result](assets/part_09/screenshot_pdf.jpg)
+
+```
+Release Notes — a/repo/name
+Version: 444
+Published: 2026/05/28
+
+Fix logging
+Fix backend
+Added button in frontend.
+```
+
+The `release_notes` string we passed in (`'Fix logging \n Fix backend \n Added button in frontend.'`) was split line by line and rendered as individual paragraphs by ReportLab — exactly as the `create_pdf` tool was built to do in Part 02.
+
+---
+
+
+### What to keep in mind
+
+> ⚠️ At this stage the client is driving the tool calls manually — we decide what to call and with what arguments. In Part 12, the AI model takes over that decision entirely.
+
+---
+
+
+### 🎮 Quiz
+
 *(coming soon)*
+
+---
+
+
+> 💡 **MCP Curiosity**
+> `call_tool` returns a `CallToolResult` object — not just the raw output. It includes `content` (the tool's response), `isError` (whether the tool raised an exception), and `meta`. The model reads `isError` too — if a tool fails, it can decide to retry or adjust its approach.
 
 [↑ Back to Table of Contents](#table-of-contents)
 

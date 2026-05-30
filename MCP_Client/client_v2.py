@@ -71,7 +71,7 @@ def test_tools():
 
             print("read_last_release call")
             print("-----------------------------------------------------------------")
-            tool_name = "read_last_release call"
+            tool_name = "read_last_release"
             read_last_release = await client_session.call_tool(tool_name)
             print(read_last_release)
             print("-----------------------------------------------------------------\n")
