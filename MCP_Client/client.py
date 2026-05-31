@@ -16,7 +16,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-
+from helpers import DebugList
 
 
 # ─────────────────────────────────────────────
@@ -79,6 +79,18 @@ async def get_tools_for_anthropic(client_session):
 
     return anthropic_tools
 
+async def get_prompt_for_release_notes(client_session, release_payload):
+    # — Fetch prompt template from MCP server
+    version     = release_payload.get("release", {}).get("tag_name", "unknown")
+    raw_changes = release_payload.get("release", {}).get("body", "")
+
+    prompt_result = await client_session.get_prompt(
+        "generate_release_notes",
+        arguments={"version": version, "changes": raw_changes}
+    )
+
+    return prompt_result.messages[0].content.text    
+
 def build_initial_message(release_payload, instructions):
     return f"""
             A new GitHub release has been published. Here is the release payload:
@@ -97,23 +109,10 @@ def build_initial_message(release_payload, instructions):
             """    
 
 
-async def get_prompt_for_release_notes(client_session, release_payload):
-    # — Fetch prompt template from MCP server
-    #   The client fetches it and injects it into the initial message.
-    #   The model is not aware of this step — it just receives the instructions.
-    version     = release_payload.get("release", {}).get("tag_name", "unknown")
-    raw_changes = release_payload.get("release", {}).get("body", "")
-
-    prompt_result = await client_session.get_prompt(
-        "generate_release_notes",
-        arguments={"version": version, "changes": raw_changes}
-    )
-
-    return prompt_result.messages[0].content.text    
-
-async def run_pipeline(release_payload: dict):
-
+async def run_pipeline(release_payload: dict, DEBUG_PRINT_ALL_MESSAGE_DETAILS = False):
     async with AsyncExitStack() as stack:
+        messages = DebugList() if DEBUG_PRINT_ALL_MESSAGE_DETAILS else []
+
         client_session = await connect_to_mcp_server(stack)
 
         # - Get available tools
@@ -124,7 +123,7 @@ async def run_pipeline(release_payload: dict):
         prompt_text = await get_prompt_for_release_notes(client_session, release_payload)
         print(f"✍️  Prompt fetched ({len(prompt_text)} chars)\n")
 
-        # — Build initial message
+        # — Build initial message    
         initial_message = build_initial_message(release_payload, prompt_text)
 
         # ── TOOL USE LOOP ─────────────────────────────────────────────────────
@@ -134,11 +133,12 @@ async def run_pipeline(release_payload: dict):
         # The loop ends when Claude stops calling tools (stop_reason == "end_turn").
         # ─────────────────────────────────────────────────────────────────────
         anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-        messages = [{"role": "user", "content": initial_message}]
+        messages.append({"role": "user", "content": initial_message})
 
         print("🤖 Claude is working...\n")
 
         while True:
+            # Send message to Claude
             response = anthropic_client.messages.create(
                 model=CLAUDE_MODEL,
                 max_tokens=1024,
@@ -148,11 +148,12 @@ async def run_pipeline(release_payload: dict):
 
             messages.append({"role": "assistant", "content": response.content})
 
+            # If it is the end of the conversation
             if response.stop_reason == "end_turn":
                 final_text = next(
                     (b.text for b in response.content if hasattr(b, "text")), "Done."
                 )
-                print(f"✅ Claude finished: {final_text}")
+                print(f"📍✅ Claude finished: {final_text}")
                 break
 
             tool_results = []
@@ -168,7 +169,7 @@ async def run_pipeline(release_payload: dict):
                         "content": result_text,
                     })
 
-            messages.append({"role": "user", "content": tool_results})
+            messages.append({"role": "user", "content": tool_results})           
 
         print("\n✅ Pipeline complete.")
 
@@ -310,7 +311,7 @@ def test_full_pipeline():
             "html_url": "https://github.com/user/mcp-release-notifier"
         }
     }
-    asyncio.run(run_pipeline(sample_payload))
+    asyncio.run(run_pipeline(sample_payload, True))
 
 # ─────────────────────────────────────────────
 # 🚀 ENTRY POINT
@@ -320,7 +321,7 @@ if __name__ == "__main__":
     # test_resources()
     # test_prompts()
 
-    # test_full_pipeline()
+    test_full_pipeline()
 
     pass
 
