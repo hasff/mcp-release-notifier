@@ -2032,7 +2032,337 @@ Write clear, concise release notes suitable for a developer audience.
 
 #### ⚡ Quick Navigation: [⬅️ Part 11 — 🔌✍️🔍 Testing Prompts](#part-11) | [Part 13 — 🔌🚀 Running the Pipeline ➡️](#part-13)
 
+> 📒 **What you'll learn:** How to wire Claude into the MCP client — turning the manual tool calls and prompt fetches from the previous parts into a fully autonomous AI-driven pipeline.
+
+---
+
+
+### ⚠️ This part is dense — read carefully
+
+Up to this point, *you* were the intelligence: you decided which tools to call, with what arguments, and in what order. From here on, **Claude decides**. The client's job shifts from "call tools" to "relay messages between Claude and the MCP server."
+
+This is the biggest conceptual leap in the project. Take it step by step.
+
+---
+
+
+### 🎉 But also — this is the exciting part!
+
+Everything we built so far — the MCP server, the tools, the resources, the prompts, the client connection — was laying the groundwork for this moment. We're about to plug the AI in and watch it drive. Let's go. 🚀
+
+---
+
+
+### Install dependencies
+
+```bash
+pip install anthropic python-dotenv
+```
+
+---
+
+### Code walkthrough
+
+> 📄 **File:** `MCP_Client/client_v5.py`
+
+---
+
+
+### New imports
+
+```python
+# Standard library
+import json
+
+# Anthropic
+import anthropic
+
+# Environment
+import os
+from dotenv import load_dotenv
+load_dotenv()
+```
+
+`anthropic` — the official Python SDK for the Claude API.
+
+`dotenv` — loads environment variables from a `.env` file so we don't hardcode the API key.
+
+`json` — used to serialise tool inputs and results when logging.
+
+---
+
+
+### Configuration
+
+```python
+# ─────────────────────────────────────────────
+# ⚙️ CONFIGURATION
+# ─────────────────────────────────────────────
+CLAUDE_MODEL      = "claude-haiku-4-5"
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+
+assert ANTHROPIC_API_KEY, "Error: ANTHROPIC_API_KEY not found. Check your .env file."
+```
+
+`CLAUDE_MODEL` — the Claude model to use. We're using Haiku here for speed and cost efficiency.
+
+`ANTHROPIC_API_KEY` — loaded from the environment. The `assert` fails fast with a clear message if the key is missing.
+
+---
+
+
+#### Setting up the `.env` file
+
+You'll need an Anthropic API key → [console.anthropic.com](https://console.anthropic.com)
+
+Create a `.env` file at the root of your project (a template is already provided as `.env.example`):
+
+```
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+```
+
+> ⚠️ Never commit your `.env` file. Add it to `.gitignore`.
+
+---
+
+
+### The pipeline — `run_pipeline`
+
+This is the core of Part 12. The function is structured in two phases: **setup** and **the tool use loop**.
+
+---
+
+
+#### Phase 1 — Setup
+
+```python
+messages = []
+
+# - Get available tools
+anthropic_tools = await get_tools_for_anthropic(client_session)
+print(f"🔧 Tools available: {[t['name'] for t in anthropic_tools]}\n")
+
+# - Get 'generate_release_notes' prompt
+prompt_text = await get_prompt_for_release_notes(client_session, release_payload)
+print(f"✍️  Prompt fetched ({len(prompt_text)} chars)\n")
+
+# — Build initial message
+initial_message = build_initial_message(release_payload, prompt_text)
+
+messages.append({"role": "user", "content": initial_message})
+```
+
+Three helper functions do the prep work before Claude enters the picture:
+
+---
+
+
+##### `get_tools_for_anthropic`
+
+```python
+anthropic_tools = [
+    {
+        "name": t.name,
+        "description": t.description,
+        "input_schema": t.inputSchema,
+    }
+    for t in tools_result.tools
+]
+```
+
+We already know how to list tools from the MCP server — we did it in Part 09. The difference here is the format: the Anthropic API expects tools as a list of dicts with `name`, `description`, and `input_schema`. This function fetches the tools from MCP and converts them into that shape. Claude will use this list to know what actions are available to it.
+
+---
+
+
+##### `get_prompt_for_release_notes`
+
+Also familiar from Part 11 — we call `get_prompt` on the MCP server. Here we inject the `tag_name` (version) and `body` (raw changes) from the release payload directly into the prompt template. The result is the fully rendered instructions that will guide Claude's writing style and tone.
+
+> Remember this?
+>
+> 📄 **File:** `MCP_Server/server_v4.py`
+```python
+@mcp.prompt()
+def generate_release_notes(version: str, changes: str) -> str:
+    """Prompt template to generate professional release notes."""
+    return (f"""
+You are a technical writer. Generate professional release notes for version {version}.
+
+<Raw changes>
+{changes}
+</Raw changes>
+
+Write clear, concise release notes suitable for a developer audience.
+    """)
+```
+
+---
+
+
+##### `build_initial_message`
+
+This function combines two things into a single user message:
+- The **release payload** — so Claude knows what release to work with
+- The **prompt instructions** — the professional writing guidelines fetched from the MCP server
+
+The result is Claude's starting context: *"here's the release, here are your writing instructions, now get to work."*
+
+That first message is appended to `messages` — the conversation history we'll maintain throughout the loop.
+
+---
+
+
+#### Phase 2 — The tool use loop
+
+```python
+anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+
+while True:
+    ...
+```
+
+`anthropic.Anthropic(api_key=...)` — creates the API client. This is the object that talks to the Claude API.
+
+The `while True` loop is the agentic core: it runs until Claude decides it's done. Each iteration is one round of the conversation.
+
+---
+
+
+##### Step 1 — Send the message to Claude
+
+```python
+response = anthropic_client.messages.create(
+    model=CLAUDE_MODEL,
+    max_tokens=1024,
+    tools=anthropic_tools,
+    messages=messages,
+)
+
+messages.append({"role": "assistant", "content": response.content})
+```
+
+`model` — which Claude model to use. Defined in configuration as `"claude-haiku-4-5"`.
+
+`max_tokens` — the maximum number of tokens Claude can produce in a single response. Set to `1024` here — enough for tool call decisions and a final summary, but not unbounded.
+
+`tools` — the list of available tools we fetched from the MCP server and converted to Anthropic format. Passing this is what gives Claude the *ability* to call tools — without it, Claude can only produce text. When tools are present, Claude can choose to respond with a `tool_use` block instead of plain text.
+
+`messages` — the full conversation history, in order. **This is critical.** Claude has no memory between API calls — every call is stateless from the API's perspective. The entire context must be sent every time: the initial user message, every tool call Claude made, every tool result we returned. If we only sent the latest message, Claude would have no idea what it already did or what it was trying to accomplish.
+
+This is why we append to `messages` throughout the loop — we're manually building and maintaining the memory that Claude doesn't have natively.
+
+The response is appended immediately as the assistant turn. This ensures that on the next iteration, Claude can see its own previous reasoning and tool requests as part of the conversation history.
+
+---
+
+##### Step 2 — Check if Claude is done
+
+```python
+if response.stop_reason == "end_turn":
+    final_text = next(
+        (b.text for b in response.content if hasattr(b, "text")), "Done."
+    )
+    print(f"📍✅ Claude finished: {final_text}")
+    break
+```
+
+`stop_reason == "end_turn"` means Claude has finished — it has no more tool calls to make and has produced its final response. We extract the last text block and break out of the loop.
+
+If `stop_reason` is anything else (specifically `"tool_use"`), we continue to the next step.
+
+---
+
+
+##### Step 3 — Execute the tool calls
+
+```python
+tool_results = []
+for block in response.content:
+    if block.type == "tool_use":
+        print(f"   🔧 Claude calls: {block.name}({json.dumps(block.input)})")
+        result = await client_session.call_tool(block.name, block.input)
+        result_text = result.content[0].text
+        print(f"   ↳  Result: {result_text[:120]}...\n")
+        tool_results.append({
+            "type": "tool_result",
+            "tool_use_id": block.id,
+            "content": result_text,
+        })
+
+messages.append({"role": "user", "content": tool_results})
+```
+
+When `stop_reason == "tool_use"`, Claude's response contains one or more `tool_use` blocks. Each one says: *"call this tool, with these arguments."*
+
+On behalf of Claude, the MCP client invokes each tool on the MCP server — exactly as we did manually in Part 09 — and collects the results.
+
+Each result is packaged as a `tool_result` block and tied back to its originating `tool_use` block via `tool_use_id`. **This ID matters.** Here's a concrete example:
+
+> Imagine that the MCP Server had a tool to sum two numbers!
+>
+> Claude receives: *"what is 3 + 4, and also 9 + 10?"*
+>
+> It produces two `tool_use` blocks — `add(3, 4)` with id `tool_abc`, and `add(9, 10)` with id `tool_xyz`.
+>
+> When we return the results, Claude needs to know that `7` belongs to `tool_abc` and `19` to `tool_xyz`. Without `tool_use_id`, Claude can't correlate results to requests — and the conversation breaks.
+
+Once all results are collected, they're appended as a new `user` message and the loop restarts. Claude receives its own previous tool requests *and* the results, and decides what to do next: call more tools, or produce the final response.
+
+---
+
+
+### Full flow — at a glance
+
+```
+Initial message (release payload + writing instructions)
+        │
+        ▼
+  Claude API  →  tool_use: read_last_release
+        │
+  MCP Server executes read_last_release
+        │
+  Result returned to Claude
+        │
+        ▼
+  Claude API  →  tool_use: create_pdf (with polished release notes)
+        │
+  MCP Server executes create_pdf
+        │
+  Result returned to Claude
+        │
+        ▼
+  Claude API  →  stop_reason: end_turn
+        │
+  Pipeline complete ✅
+```
+
+---
+
+
+### What to keep in mind
+
+> ⚠️ Claude drives all tool decisions autonomously — the client doesn't tell it which tools to call or in what order. It infers the correct sequence from the task description and the available tool definitions. One thing to keep in mind: a highly detailed prompt like ours leaves little room for the model to reason — it's almost being told what to do step by step. Honestly? We're kind of cheating 😅 — `build_initial_message` hands Claude a numbered to-do list with the exact tools to call. Is that a problem? We'll find out in Part 13. 😎
+
+> 💡 **The conversation history is the memory.** Claude has no state between API calls. The entire `messages` list is sent on every iteration — that's how it "remembers" what it already did.
+
+---
+
+### What's next?
+
+The pipeline is wired. In Part 13 we run it for real — a sample release payload in, a polished PDF out. We'll also poke at `build_initial_message` and see what happens when we take the training wheels off. 👀
+
+---
+
+### 🎮 Quiz
+
 *(coming soon)*
+
+---
+
+
+> 💡 **MCP Curiosity**
+> The tool use loop we built here is the foundation of every agentic workflow. More complex agents follow the exact same pattern — the loop just runs longer, involves more tools, and may include branching logic based on tool results. The core mechanic is always: send → decide → execute → return → repeat.
 
 [↑ Back to Table of Contents](#table-of-contents_)
 
