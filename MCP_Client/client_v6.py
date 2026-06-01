@@ -146,6 +146,12 @@ async def run_pipeline(release_payload: dict, DEBUG_PRINT_ALL_MESSAGE_DETAILS = 
                 messages=messages,
             )
 
+            print(f"""    
+___________________________________________
+|
+| 🛑 STOP REASON ==> {response.stop_reason}  
+|__________________________________________\n""")
+            
             messages.append({"role": "assistant", "content": response.content})
 
             # If it is the end of the conversation
