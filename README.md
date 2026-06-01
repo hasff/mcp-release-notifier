@@ -2586,7 +2586,7 @@ The terminal now shows every message object as it flows through the conversation
 
 #### Message 1 — User (initial)
 
-😎 **---->** 💻
+😎 **---->** 🤖
 ```
 [METADATA LAYER] ─── Message Object ────────────────────────────────────
  ├── Role: USER 😎
@@ -2601,7 +2601,7 @@ The initial user message — release payload plus writing instructions. A single
 
 #### Message 2 — Assistant (first tool call)
 
-😎 **<----** 💻
+😎 **<----** 🤖
 ```
 ___________________________________________
 |
@@ -2609,7 +2609,7 @@ ___________________________________________
 |__________________________________________
 
 [METADATA LAYER] ─── Message Object ────────────────────────────────────
- ├── Role: ASSISTANT 💻
+ ├── Role: ASSISTANT 🤖
  └── Content Blocks (Total: 2):
       ├── [Block #0 Type]: TEXT
       │  └── [Preview]: "I'll help you process this GitHub release..."
@@ -2626,7 +2626,7 @@ Claude responds with **two blocks**: a reasoning text block and a `tool_use` blo
 
 #### Message 3 — User (tool result)
 
-😎 **---->** 💻
+😎 **---->** 🤖
 ```
 [METADATA LAYER] ─── Message Object ────────────────────────────────────
  ├── Role: USER 😎
@@ -2644,7 +2644,7 @@ The client executes the tool and returns the result. **Responding To ID** matche
 
 #### Message 4 — Assistant (second tool call)
 
-😎 **<----** 💻
+😎 **<----** 🤖
 ```
 ___________________________________________
 |
@@ -2652,7 +2652,7 @@ ___________________________________________
 |__________________________________________
 
 [METADATA LAYER] ─── Message Object ────────────────────────────────────
- ├── Role: ASSISTANT 💻
+ ├── Role: ASSISTANT 🤖
  └── Content Blocks (Total: 2):
       ├── [Block #0 Type]: TEXT
       │  └── [Preview]: "Great! The release data has been confirmed. Now I'll create..."
@@ -2673,7 +2673,7 @@ Claude "asks" MCP Client to call `create_pdf` with the **fully written release n
 
 #### Message 5 — User (tool result)
 
-😎 **---->** 💻
+😎 **---->** 🤖
 ```
 [METADATA LAYER] ─── Message Object ────────────────────────────────────
  ├── Role: USER 😎
@@ -2689,7 +2689,7 @@ PDF created. Result returned to Claude.
 
 #### Message 6 — Assistant (end_turn)
 
-😎 **<----** 💻
+😎 **<----** 🤖
 ```
 ___________________________________________
 |
@@ -2795,7 +2795,7 @@ ___________________________________________
 |__________________________________________
 
 [METADATA LAYER] ─── Message Object ────────────────────────────────────
- ├── Role: ASSISTANT 💻
+ ├── Role: ASSISTANT 🤖
  └── Content Blocks (Total: 3):
       ├── [Block #0 Type]: TEXT
       │  └── [Preview]: "I'll help you generate professional release notes and create a PDF. Let me st..."

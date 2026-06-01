@@ -16,7 +16,7 @@ class DebugList(list):
             return
 
         role = msg.get('role', 'unknown').upper()
-        role += ' 😎' if role == 'USER' else ' 💻'        
+        role += ' 😎' if role == 'USER' else ' 🤖'        
         content = msg.get('content', [])
 
         # ANSI styling for structural visibility
