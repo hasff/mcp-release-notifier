@@ -2697,7 +2697,7 @@ ___________________________________________
 |__________________________________________
 
 [METADATA LAYER] ─── Message Object ────────────────────────────────────
- ├── Role: ASSISTANT 💻
+ ├── Role: ASSISTANT 🤖
  └── Content Blocks (Total: 1):
       └── [Block #0 Type]: TEXT
          └── [Preview]: "Perfect! I've successfully completed all three tasks..."
