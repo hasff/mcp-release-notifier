@@ -2376,7 +2376,521 @@ The pipeline is wired. In Part 13 we run it for real — a sample release payloa
 
 #### ⚡ Quick Navigation: [⬅️ Part 12 — 🔌🤖 The AI Pipeline](#part-12) | [Part 14 — ⚡ FastAPI Webhook ➡️](#part-14)
 
+> 📒 **What you'll learn:** How to run the full AI pipeline for the first time — observe the tool use loop in action, inspect the message metadata layer, and understand why tool descriptions are critical for the model.
+
+---
+
+### Theory
+
+Up to Part 12 we wired everything together. Now we fire it up.
+
+This part has three acts:
+
+1. **Run the pipeline** — watch Claude call the tools autonomously and generate the PDF
+2. **Enable debug mode** — inspect the raw message objects flowing through the conversation
+3. **Break things on purpose** — remove tool descriptions and see what happens
+
+---
+
+### Code walkthrough
+
+> 📄 **File:** `MCP_Client/client_v6.py`
+
+Three changes from `client_v5.py`:
+
+---
+
+#### 1 — Import `DebugList`
+
+```python
+from helpers import DebugList
+```
+
+`DebugList` is a drop-in replacement for a regular Python list. Every time a message is appended, it pretty-prints its role and content blocks — making the conversation structure visible in the terminal.
+
+> 💡 `DebugList` inherits from `list` and overrides `append`. The rest of the pipeline doesn't change at all.
+
+---
+
+#### 2 — Add the `DEBUG_PRINT_ALL_MESSAGE_DETAILS` flag
+
+```python
+async def run_pipeline(release_payload: dict, DEBUG_PRINT_ALL_MESSAGE_DETAILS = False):
+    # (...)
+    messages = DebugList() if DEBUG_PRINT_ALL_MESSAGE_DETAILS else []
+```
+
+When `True`, `messages` becomes a `DebugList`. When `False`, it's a plain list — no overhead.
+
+---
+
+#### 3 — Print `stop_reason` on every loop iteration
+
+```python
+while True:
+    response = anthropic_client.messages.create(...)
+
+    print(f"""    
+___________________________________________
+|
+| 🛑 STOP REASON ==> {response.stop_reason}  
+|__________________________________________\n""")
+
+    messages.append({"role": "assistant", "content": response.content})
+```
+
+`stop_reason` is printed immediately after each API response, before anything else. This makes the loop's decision point visible in the terminal — you can see in real time whether Claude is requesting another tool call or wrapping up.
+
+Two possible values in this pipeline:
+
+| `stop_reason` | Meaning | Loop behaviour |
+|---|---|---|
+| `tool_use` | Claude wants to call a tool | Continue — execute tools, return results |
+| `end_turn` | Claude is done | Break — extract final text, exit loop |
+
+---
+
+#### 4 — Add `test_full_pipeline`
+
+```python
+def test_full_pipeline():
+    sample_payload = {
+        "action": "published",
+        "release": {
+            "tag_name": "v1.2.6760",
+            "name": "Release v1.2.6760",
+            "body": "## What's Changed?\n- Fix login bug\n- Add dark mode\n- Improve performance",
+            "published_at": "2025-05-23T10:00:00Z",
+            "html_url": "https://github.com/user/repo/releases/tag/v1.2.6760"
+        },
+        "repository": {
+            "name": "mcp-release-notifier",
+            "full_name": "user/mcp-release-notifier",
+            "html_url": "https://github.com/user/mcp-release-notifier"
+        }
+    }
+    asyncio.run(run_pipeline(sample_payload, False))
+```
+
+This simulates what the webhook will trigger in production — a complete release payload in, a polished PDF out. We start with debug **off** to keep the output clean.
+
+```python
+if __name__ == "__main__":
+    # test_tools()
+    # test_resources()
+    # test_prompts()
+    test_full_pipeline()
+    pass
+```
+
+> ⚠️ Before running, open `MCP_Server/output/` in your file explorer — you'll want to see the PDF appear there after the pipeline finishes.
+
+---
+
+### Run 1 — Clean output (debug off)
+
+```bash
+py MCP_Client/client_v6.py
+```
+
+Terminal output:
+
+```
+✅ Connected to MCP server
+
+🔧 Tools available: ['read_last_release', 'create_pdf']
+
+✍️  Prompt fetched (266 chars)
+
+🤖 Claude is working...
+
+___________________________________________
+|
+| 🛑 STOP REASON ==> tool_use  
+|__________________________________________
+
+   🔧 Claude calls: read_last_release({})
+   ↳  Result: {"action": "published", "release": {"tag_name": "v1.2.6760", ...
+
+___________________________________________
+|
+| 🛑 STOP REASON ==> tool_use  
+|__________________________________________
+
+   🔧 Claude calls: create_pdf({"version": "v1.2.6760", "repo_name": "mcp-release-notifier", "release_notes": "..."})
+   ↳  Result: {"success": true, "file": "release_v1.2.6760_20260531_170614.pdf", ...
+
+___________________________________________
+|
+| 🛑 STOP REASON ==> end_turn  
+|__________________________________________
+
+📍✅ Claude finished: Perfect! I've successfully completed all three tasks...
+
+✅ Pipeline complete.
+```
+
+Claude autonomously called `read_last_release`, wrote professional release notes, then called `create_pdf`. No manual orchestration — Claude decided the sequence.
+
+---
+
+### 🎉 The WOW moment — the generated PDF
+
+Three raw bullet points in:
+```bash 
+"body": "## What's Changed?\n- Fix login bug\n- Add dark mode\n- Improve performance" 
+```
+A structured, professional document out:
+
+![PDF output](assets/part_13/screenshot_pdf_p13.jpg)
+
+> Remember this?
+>
+> 📄 **File:** `MCP_Server/server_v4.py`
+```python
+@mcp.prompt()
+def generate_release_notes(version: str, changes: str) -> str:
+    """Prompt template to generate professional release notes."""
+    return (f"""
+You are a technical writer. Generate professional release notes for version {version}.
+
+<Raw changes>
+{changes}
+</Raw changes>
+
+Write clear, concise release notes suitable for a developer audience.
+    """)
+```
+
+That's the prompt template doing its job — turning `"Fix login bug"` into a full paragraph. ✅
+
+---
+
+### Run 2 — Debug mode (metadata layer visible)
+
+Now let's look under the hood. Change the flag in `test_full_pipeline`:
+
+```python
+asyncio.run(run_pipeline(sample_payload, True))
+```
+
+Run again:
+
+```bash
+py MCP_Client/client_v6.py
+```
+
+The terminal now shows every message object as it flows through the conversation. Here's what each one means:
+
+---
+
+#### Message 1 — User (initial)
+
+😎 **---->** 💻
+```
+[METADATA LAYER] ─── Message Object ────────────────────────────────────
+ ├── Role: USER 😎
+ └── Content Blocks (Total: 1):
+      ├── [Block Type]: Raw String Fallback
+      └── [Payload]: A new GitHub release has been published...
+```
+
+The initial user message — release payload plus writing instructions. A single string block.
+
+---
+
+#### Message 2 — Assistant (first tool call)
+
+😎 **<----** 💻
+```
+___________________________________________
+|
+| 🛑 STOP REASON ==> tool_use  
+|__________________________________________
+
+[METADATA LAYER] ─── Message Object ────────────────────────────────────
+ ├── Role: ASSISTANT 💻
+ └── Content Blocks (Total: 2):
+      ├── [Block #0 Type]: TEXT
+      │  └── [Preview]: "I'll help you process this GitHub release..."
+      └── [Block #1 Type]: TOOL_USE
+         ├── Tool Name: read_last_release
+         ├── Execution ID: toolu_01JeLC5B3EuAJqF9Gbcgcis6
+         └── Arguments Schema (JSON Input): {}
+```
+
+Claude responds with **two blocks**: a reasoning text block and a `tool_use` block. `stop_reason == "tool_use"` — the loop continues.
+>🚨 Did you noticed that `Execution ID: toolu_01JeLC5B3EuAJqF9Gbcgcis6`? 🚨
+
+---
+
+#### Message 3 — User (tool result)
+
+😎 **---->** 💻
+```
+[METADATA LAYER] ─── Message Object ────────────────────────────────────
+ ├── Role: USER 😎
+ └── Content Blocks (Total: 1):
+      └── [Block #0 Type]: TOOL_RESULT
+         ├── Responding To ID: toolu_01JeLC5B3EuAJqF9Gbcgcis6
+         └── Execution Output: {"action": "published", ...}
+```
+
+The client executes the tool and returns the result. **Responding To ID** matches the 🚨 `Execution ID` 🚨 from Message 2 — this is how Claude correlates results to requests.
+
+![Example: Why tool_use_id is important?](assets/part_13/screenshot_remember_p13.jpg)
+
+---
+
+#### Message 4 — Assistant (second tool call)
+
+😎 **<----** 💻
+```
+___________________________________________
+|
+| 🛑 STOP REASON ==> tool_use  
+|__________________________________________
+
+[METADATA LAYER] ─── Message Object ────────────────────────────────────
+ ├── Role: ASSISTANT 💻
+ └── Content Blocks (Total: 2):
+      ├── [Block #0 Type]: TEXT
+      │  └── [Preview]: "Great! The release data has been confirmed. Now I'll create..."
+      └── [Block #1 Type]: TOOL_USE
+         ├── Tool Name: create_pdf
+         ├── Execution ID: toolu_01N2srZnKD4oiiHVNHNbrPQ4
+         └── Arguments Schema (JSON Input):
+             {
+               "version": "v1.2.6760",
+               "repo_name": "mcp-release-notifier",
+               "release_notes": "# Release Notes - v1.2.6760\n\n..."
+             }
+```
+
+Claude "asks" MCP Client to call `create_pdf` with the **fully written release notes** already embedded in the arguments. The model wrote them — not us.
+
+---
+
+#### Message 5 — User (tool result)
+
+😎 **---->** 💻
+```
+[METADATA LAYER] ─── Message Object ────────────────────────────────────
+ ├── Role: USER 😎
+ └── Content Blocks (Total: 1):
+      └── [Block #0 Type]: TOOL_RESULT
+         ├── Responding To ID: toolu_01N2srZnKD4oiiHVNHNbrPQ4
+         └── Execution Output: {"success": true, "file": "release_v1.2.6760_20260531_171604.pdf", ...}
+```
+
+PDF created. Result returned to Claude.
+
+---
+
+#### Message 6 — Assistant (end_turn)
+
+😎 **<----** 💻
+```
+___________________________________________
+|
+| 🛑 STOP REASON ==> end_turn  
+|__________________________________________
+
+[METADATA LAYER] ─── Message Object ────────────────────────────────────
+ ├── Role: ASSISTANT 💻
+ └── Content Blocks (Total: 1):
+      └── [Block #0 Type]: TEXT
+         └── [Preview]: "Perfect! I've successfully completed all three tasks..."
+```
+
+`stop_reason == "end_turn"`. No more tool calls. The loop exits.
+
+---
+
+### What the debug layer reveals
+
+Six messages total. Every single one was included in the last API call. That's the stateless reality of LLM APIs: **the client maintains the full conversation history and sends it in its entirety on every request.**
+
+Each iteration of the loop adds two messages — one assistant response and one user message with the tool results — and the next call carries everything accumulated so far. Claude can only "remember" what we explicitly send back to it. And this is not optional — imagine a tool that depends on the output of a previous one: if the `read_last_release` result isn't in the history, Claude has no way to pass the correct version or repo name to `create_pdf`. Drop a `tool_result` from the list and the chain breaks.
+
+Look at this line in the pipeline:
+
+```python
+response = anthropic_client.messages.create(
+    model=CLAUDE_MODEL,
+    max_tokens=1024,
+    tools=anthropic_tools,
+    messages=messages,   # 👈 THE ENTIRE HISTORY, EVERY TIME
+)
+```
+
+`messages` is not "the latest message". It's the full list — growing with every iteration:
+
+```
+Iteration 1  →  messages = [msg_1]
+Iteration 2  →  messages = [msg_1, msg_2, msg_3]
+Iteration 3  →  messages = [msg_1, msg_2, msg_3, msg_4, msg_5]
+```
+
+By the time Claude produces its final `end_turn` response, the API call carries all 6 messages. Claude reads the entire conversation from scratch on every call — there is no server-side session, no hidden state, no memory outside of what you send. This is also why long conversations with any LLM — ChatGPT, Claude, Gemini — feel slower and less reliable over time: every reply re-processes the entire history, and as the context grows, so does latency, cost, and the probability of the model losing the thread.
+
+> 💡 **The conversation history is the memory.** Strip any message from the list and Claude loses that context permanently. The `messages` list *is* the mind of the agent.
+
+---
+# NOW THE FUN PART 😎😎😎
+
+
+### Experiments — what happens when we loosen the instructions?
+
+> 📄 **File:** `MCP_Client/client_v6_test.py`
+
+So far our prompt was very explicit — it gave Claude a numbered to-do list with the exact tools to call, in order. Let's see what happens when we take the training wheels off.
+
+---
+
+#### The change — `build_initial_message_test`
+
+Instead of:
+
+```python
+Your task:
+1. Call read_last_release to confirm the release data.
+2. Using the instructions below, write professional release notes for this release.
+3. Call create_pdf with the professional release notes you wrote.
+```
+
+We give it something more open:
+
+```python
+Your task:
+Get the last release and write something professional about it, include that in a pdf!
+```
+
+Same tools available. Same prompt template. Just a looser task description.
+
+---
+
+#### Run it
+
+We also change the `body` in `test_full_pipeline_v2` to make it easy to spot which release was actually used:
+
+```python
+"body": "## What's Changed?\n- Fix button 'send'\n- Add dark mode\n- Improve performance",
+```
+
+```bash
+py MCP_Client/client_v6_test.py
+```
+
+---
+
+#### Result — Claude parallelises the tool calls
+
+Here's Message 2 from the debug output:
+
+```
+___________________________________________
+|
+| 🛑 STOP REASON ==> tool_use  
+|__________________________________________
+
+[METADATA LAYER] ─── Message Object ────────────────────────────────────
+ ├── Role: ASSISTANT 💻
+ └── Content Blocks (Total: 3):
+      ├── [Block #0 Type]: TEXT
+      │  └── [Preview]: "I'll help you generate professional release notes and create a PDF. Let me st..."
+      ├── [Block #1 Type]: TOOL_USE
+      │  ├── Tool Name: read_last_release
+      │  ├── Execution ID: toolu_01U27obfKVzmhet6RuNy9xVz
+      │  └── Arguments Schema (JSON Input): {}
+      └── [Block #2 Type]: TOOL_USE
+         ├── Tool Name: create_pdf
+         ├── Execution ID: toolu_0147hk94Kmy3f8gwfPDKKLYv
+         └── Arguments Schema (JSON Input):
+             {
+               "version": "v1.2.6760",
+               "repo_name": "mcp-release-notifier",
+               "release_notes": "# Release v1.2.6760 - Release Notes\n\n..."
+             }
+```
+
+**Three content blocks in a single assistant message** — one TEXT and two TOOL_USE. Claude decided to call both tools at the same time, in parallel.
+
+Without step-by-step instructions, Claude reasoned: *"I have everything I need from the payload — I don't need to wait for `read_last_release` to start writing."* So it wrote the release notes immediately and fired both tool calls in one shot.
+
+And Message 3 reflects that — two TOOL_RESULT blocks side by side:
+
+```
+[METADATA LAYER] ─── Message Object ────────────────────────────────────
+ ├── Role: USER 😎
+ └── Content Blocks (Total: 2):
+      ├── [Block #0 Type]: TOOL_RESULT
+      │  ├── Responding To ID: toolu_01U27obfKVzmhet6RuNy9xVz
+      │  └── Execution Output: {"action": "published", ...}
+      └── [Block #1 Type]: TOOL_RESULT
+         ├── Responding To ID: toolu_0147hk94Kmy3f8gwfPDKKLYv
+         └── Execution Output: {"success": true, "file": "release_v1.2.6760_20260601_152312.pdf", ...}
+```
+
+The full conversation collapsed from 6 messages to 4. One fewer round-trip to the API.
+
+---
+
+#### What this reveals about Claude's reasoning
+
+| | Step-by-step prompt | Open prompt |
+|---|---|---|
+| **Tool call pattern** | Sequential — one per iteration | Parallel — both in one response |
+| **Total messages** | 6 | 4 |
+| **API round-trips** | 3 | 2 |
+| **PDF content** | Based on `read_last_release` result | Based on payload already in context |
+
+> ⚠️ **Notice the trade-off.** In the parallel run, Claude used the release data from the initial payload — not the file on disk. It didn't wait for `read_last_release` to confirm anything. In this project that's fine, but in a real pipeline where the file on disk could differ from the payload, the sequential approach is safer.
+
+> 💡 **The prompt shapes the behaviour.** A numbered task list forces sequential execution. A free-form instruction lets Claude optimise on its own — which may be faster, but less predictable. Neither is wrong; it depends on what guarantees your pipeline needs.
+
+---
+
+#### The loop ran once less — and that matters
+
+In the step-by-step version the loop ran 3 times (tool_use → tool_use → end_turn). Here it ran twice (tool_use → end_turn). Each iteration is a full API call — latency, tokens billed, round-trip to the model.
+
+When tool calls are **independent** — meaning neither needs the result of the other — you can execute them in parallel: spin up two threads, each resolves one tool, both results come back at the same time. Faster and cheaper.
+
+In this specific case though, parallelising is a problem in disguise. Both tool calls appear together in Message 2 — meaning Claude already decided what to write in the PDF **before** `read_last_release` even ran. The release notes were composed using the data in the payload, not the confirmed data from disk. It worked here because both matched. But if the file on disk had different content, Claude would have no idea — it had already committed to the PDF content before seeing the result.
+
+> ⚠️ **Parallel is faster. Sequential is safer.** When tool calls have a dependency — where one needs the output of another — sequential execution is the right call. The step-by-step prompt enforces that. The open prompt leaves it up to Claude — and Claude optimises for speed.
+
+> 🐇 **Want to go deeper?** Ask an AI: *"What is parallel tool use in the Anthropic API and how does it affect agentic pipeline design?"*
+
+---
+
+### 🔨 Your turn — break things
+
+The best way to understand how Claude uses tools is to make it struggle. Here are some experiments to try on your own:
+
+**On the server (`server_v4.py`):**
+- **Vague the descriptions** — remove the docstrings from `read_last_release` and `create_pdf`, or replace them with something generic like `"does stuff"`. Does Claude still know when to call them?
+- **Add a decoy tool** — create a third tool called `fetch_release_data` with a description similar to `read_last_release` but pointing to a different file. Which one does Claude pick?
+- **Add two conflicting tools** — two tools that sound like they do the same thing but behave differently. Watch Claude reason about which one to use.
+- **Break a tool's output** — make `read_last_release` return an empty dict or malformed JSON. Does Claude recover, ask for clarification, or loop forever?
+
+**On the client (`client_v6.py`):**
+- **Pass an empty tools list** — set `anthropic_tools = []`. Claude has no tools available — what does it do instead?
+- **Pass only one tool** — give Claude `create_pdf` but not `read_last_release`. How does it adapt?
+
+> 💡 There are no right answers here — the point is to observe. Every experiment reveals something about how Claude reasons with tools, and that intuition is worth more than any explanation.
+
+---
+
+### 🎮 Quiz
+
 *(coming soon)*
+
+---
+
+> 💡 **MCP Curiosity**
+> The `tool_use_id` / `tool_result` pairing is part of the Anthropic Messages API spec, not MCP. MCP returns the execution result; the client wraps it in the correct API format. This separation — MCP handles tool execution, the Anthropic SDK handles conversation structure — is what makes the architecture composable.
 
 [↑ Back to Table of Contents](#table-of-contents_)
 
