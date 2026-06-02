@@ -319,7 +319,7 @@ def test_full_pipeline():
             "html_url": "https://github.com/user/mcp-release-notifier"
         }
     }
-    asyncio.run(run_pipeline(sample_payload, True))
+    asyncio.run(run_pipeline(sample_payload, False))
 
 # ─────────────────────────────────────────────
 # 🚀 ENTRY POINT
