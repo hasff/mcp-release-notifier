@@ -2904,7 +2904,351 @@ The best way to understand how Claude uses tools is to make it struggle. Here ar
 
 #### ⚡ Quick Navigation: [⬅️ Part 13 — 🔌🚀 Running the Pipeline](#part-13) | [Part 15 — 🌐 Cloudflared ➡️](#part-15)
 
+> 📒 **What you'll learn:** How to expose the pipeline through a FastAPI webhook — so any GitHub release event can trigger it automatically, without running anything manually.
+
+---
+
+
+### Install dependencies
+
+```bash
+pip install fastapi uvicorn
+```
+
+---
+
+
+### Code walkthrough
+
+> 📄 **File:** `FastAPI_Webhook/webhook_v1.py`
+
+The webhook is a FastAPI app with two endpoints: a health check and the main `/webhook` route that receives GitHub events.
+
+---
+
+#### Configuration & setup
+
+```python
+import sys
+from pathlib import Path
+
+# 1. Allow Python to see other folders in the project
+sys.path.append(str(Path(__file__).parent.parent))
+
+RELEASE_DATA_DIR = Path(__file__).parent.parent / "MCP_Server" / "release_data"
+RELEASE_DATA_DIR.mkdir(exist_ok=True)
+
+# 2. Now we can safely import from MCP_Client
+sys.path.append(str(Path(__file__).parent.parent / "MCP_Client")) 
+from MCP_Client.client_v6 import run_pipeline 
+
+# FOR TEST PURPOSES
+PIPELINE_IS_ACTIVE = False
+```
+`sys.path.append(...)` — This is a little Python trick. Since our FastAPI server lives in `FastAPI_Webhook/` and the pipeline code lives in `MCP_Client/`, Python wouldn't normally find the import and would throw a `ModuleNotFoundError`. By adding the root project folder to `sys.path`, we tell Python: ***"Hey, if you can't find a module here, check the sibling folders too!"***
+
+`RELEASE_DATA_DIR` — points to the same `release_data/` folder the MCP server reads from. Payloads are saved here so `read_last_release` can find them.
+
+`run_pipeline` — the pipeline function we built in Part 12/13. The webhook imports it directly.
+
+`PIPELINE_IS_ACTIVE` — a toggle for testing. When `False`, the webhook accepts and validates requests without triggering the pipeline.
+
+---
+
+#### Health check
+
+```python
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+```
+
+A simple sanity check. Useful to confirm the server is up before testing the main route.
+
+---
+
+#### The webhook endpoint
+
+```python
+@app.post("/webhook")
+async def github_webhook(
+    request: Request,
+    x_github_event: str = Header(default=""),
+    body: GitHubWebhookPayload = None
+    ):
+```
+
+Three things to note:
+
+**`request: Request`** — gives us access to the raw HTTP request (headers, body). This is what the webhook actually needs to function.
+
+**`x_github_event` and `body`** — these two parameters are **not required** for the webhook to work. They exist solely to make Swagger (at `http://localhost:8000/docs`) render the header field and the request body as fillable fields, making manual testing much easier. Without them, Swagger would show a bare endpoint with no inputs.
+
+**`GitHubWebhookPayload`** — a Pydantic model with `extra = "allow"`. This lets Swagger display a structured body while accepting any additional fields GitHub might include.
+
+---
+
+#### Webhook logic — step by step
+
+```python
+# 1. Parse body
+payload = await request.json()
+
+# 2. Filter — only care about releases
+event_type = request.headers.get("X-GitHub-Event", "")
+if event_type != "release":
+    return JSONResponse({"ignored": True, "reason": ...})
+
+# 3. Filter — only 'published' action
+action = payload.get("action", "")
+if action != "published":
+    return JSONResponse({"ignored": True, "reason": ...})
+
+if PIPELINE_IS_ACTIVE:
+    # 4. Save payload to release_data
+    (RELEASE_DATA_DIR / filename).write_text(json.dumps(payload, indent=2))
+
+    # 5. Fire the pipeline
+    asyncio.create_task(run_pipeline(payload))
+
+return JSONResponse({"received": True, "tag": payload["release"]["tag_name"]})
+```
+
+The logic is deliberately simple:
+- Parse the JSON body
+- Ignore anything that isn't a `release` event with action `published`
+- Save the payload to disk (so the MCP server can read it)
+- Fire the pipeline as a background task via `asyncio.create_task` — the webhook returns immediately without waiting for it to complete
+
+> 💡 `asyncio.create_task` is key here. The pipeline takes several seconds (multiple Claude API calls). Without it, GitHub's webhook delivery would time out waiting for a response.
+
+---
+
+
+### Run it
+
+```bash
+py .\FastAPI_Webhook\webhook_v1.py
+```
+
+Terminal output:
+
+```
+INFO:     Will watch for changes in these directories: [...]
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [16408] using StatReload
+INFO:     Started server process [3132]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+```
+
+The server is live on port 8000. Open `http://localhost:8000/docs` in your browser to access the Swagger UI.
+
+![Swagger UI](assets/part_14/screenshot_swagger_1.jpg)
+
+---
+
+
+### Test 1 — Health check
+
+In Swagger, expand the `GET /health` endpoint:
+
+![Expand /health](assets/part_14/screenshot_swagger_2.1.jpg)
+
+1) Arrow → click **▶ /health** to expand it
+
+Click **Try it out**:
+
+![Try it out](assets/part_14/screenshot_swagger_2.2.jpg)
+
+2) Arrow → **Try it out** button
+
+Click **Execute**:
+
+![Execute](assets/part_14/screenshot_swagger_2.3.jpg)
+
+3) Arrow → **Execute** button
+
+Result:
+
+![Health result](assets/part_14/screenshot_swagger_2.4.jpg)
+
+```json
+{
+  "status": "ok"
+}
+```
+
+Terminal confirms the request was received:
+
+```
+INFO:     Application startup complete.
+INFO:     127.0.0.1:63300 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63300 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55066 - "GET /health HTTP/1.1" 200 OK
+```
+
+✅ Server is running correctly.
+
+---
+
+
+### Test 2 — Webhook (pipeline off)
+
+Before triggering the full pipeline, let's confirm the webhook route works correctly. Make sure `PIPELINE_IS_ACTIVE = False` in the code.
+
+Expand `POST /webhook`, then click **Try it out**.
+
+Notice the two fields that appear — they're there because of the `x_github_event` and `body` parameters in the function signature:
+
+![Webhook fields pre-filled](assets/part_14/screenshot_swagger_3.1.jpg)
+
+Fill them in:
+
+**`x-github-event`** → `release`
+
+**Request body:**
+```json
+{
+  "action": "published",
+  "release": {
+    "tag_name": "v1.2.6760",
+    "name": "Release v1.2.6760",
+    "body": "## What's Changed?\n- Front end thing\n- This is a test!\n- Improve performance",
+    "published_at": "2025-05-23T10:00:00Z",
+    "html_url": "https://github.com/user/repo/releases/tag/v1.2.6760"
+  },
+  "repository": {
+    "name": "mcp-release-notifier",
+    "full_name": "user/mcp-release-notifier",
+    "html_url": "https://github.com/user/mcp-release-notifier"
+  }
+}
+```
+
+Click **Execute**.
+
+Result:
+
+![Webhook result](assets/part_14/screenshot_swagger_3.2.jpg)
+
+```json
+{
+  "received": true,
+  "tag": "v1.2.6760"
+}
+```
+
+✅ Webhook received and validated the payload correctly.
+
+---
+
+
+### Test 3 — Full pipeline (pipeline on)
+
+Now let's fire the real thing.
+
+**Step 1** — In `webhook_v1.py`, set `PIPELINE_IS_ACTIVE = True` and save:
+
+```python
+# FOR TEST PURPOSES
+PIPELINE_IS_ACTIVE = True
+```
+
+> ⚠️ The server uses `reload=True` — it will pick up the change automatically.
+
+**Step 2** — Keep an eye on:
+- `MCP_Server/release_data/` — a new JSON file should appear
+- `MCP_Server/output/` — a new PDF should appear
+- The terminal — Claude's tool use loop will print there
+
+**Step 3** — Click **Execute** again in Swagger (same payload as Test 2).
+
+---
+
+A new JSON is saved to `release_data/`:
+
+```json
+{
+  "action": "published",
+  "release": {
+    "tag_name": "v1.2.6760",
+    ...
+  }
+}
+```
+
+A new PDF appears in `output/`:
+
+![Generated PDF](assets/part_14/screenshot_pdf.jpg)
+
+And the terminal shows the full pipeline run:
+
+```
+💾 Saved payload to release_data/release_20260602_165207.json
+🚀 Release received: v1.2.6760 — triggering pipeline...
+INFO:     127.0.0.1:56864 - "POST /webhook HTTP/1.1" 200 OK
+✅ Connected to MCP server
+
+🔧 Tools available: ['read_last_release', 'create_pdf']
+
+✍️  Prompt fetched (270 chars)
+
+🤖 Claude is working...
+
+___________________________________________
+|
+| 🛑 STOP REASON ==> tool_use  
+|__________________________________________
+
+   🔧 Claude calls: read_last_release({})
+   ↳  Result: {"action": "published", "release": {"tag_name": "v1.2.6760", ...
+
+___________________________________________
+|
+| 🛑 STOP REASON ==> tool_use  
+|__________________________________________
+
+   🔧 Claude calls: create_pdf({"version": "v1.2.6760", "repo_name": "mcp-release-notifier", "release_notes": "..."})
+   ↳  Result: {"success": true, "file": "release_v1.2.6760_20260602_165213.pdf", ...
+
+___________________________________________
+|
+| 🛑 STOP REASON ==> end_turn  
+|__________________________________________
+
+📍✅ Claude finished: Perfect! I've successfully completed all the tasks...
+
+✅ Pipeline complete.
+```
+
+Notice the HTTP 200 was returned **before** the pipeline finished — that's `asyncio.create_task` doing its job. The webhook responded instantly; Claude kept working in the background.
+
+✅ Full pipeline triggered via webhook. End to end. 🎉
+
+---
+
+
+### What to keep in mind
+
+> ⚠️ `asyncio.create_task` fires the pipeline without awaiting it — if the process exits before the task finishes, the pipeline is lost. In other words if the server restarts before the pipeline is finished, everything will be lost! Try fire the pipeline and kill the server right away, no PDF will be generated! For production, a proper task queue (Celery, ARQ, or similar) would be more reliable.
+
+> 💡 **The `x_github_event` / `body` parameters are Swagger helpers only.** In production, GitHub sends the `X-GitHub-Event` header automatically and you read it from `request.headers`. The Pydantic `body` parameter exists purely so Swagger renders a fillable form — remove both in production if you want a clean signature.
+
+❎ When you're done, press `Ctrl + C` in the terminal to stop the server.
+
+---
+
+
+### 🎮 Quiz
+
 *(coming soon)*
+
+---
+
+
+> 💡 **MCP Curiosity**
+> In a production setup, you'd also verify the `X-Hub-Signature-256` header GitHub includes with every webhook delivery. It's an HMAC-SHA256 signature of the payload using a secret you configure in GitHub — validating it ensures the request actually came from GitHub and wasn't spoofed. We will do that in the following parts! 👇
 
 [↑ Back to Table of Contents](#table-of-contents_)
 

@@ -13,10 +13,13 @@ from fastapi.responses import JSONResponse
 from fastapi import Header
 
 # Pipeline
+# 1. Allow Python to see other folders in the project
+sys.path.append(str(Path(__file__).parent.parent))
+
 RELEASE_DATA_DIR = Path(__file__).parent.parent / "MCP_Server" / "release_data"
 RELEASE_DATA_DIR.mkdir(exist_ok=True)
 
-sys.path.append(str(Path(__file__).parent.parent)) 
+# 2. Now we can safely import from MCP_Client
 sys.path.append(str(Path(__file__).parent.parent / "MCP_Client")) 
 from MCP_Client.client_v6 import run_pipeline 
 
