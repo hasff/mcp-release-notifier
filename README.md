@@ -3262,7 +3262,212 @@ Notice the HTTP 200 was returned **before** the pipeline finished — that's `as
 
 #### ⚡ Quick Navigation: [⬅️ Part 14 — ⚡ FastAPI Webhook](#part-14) | [Part 16 — 🐙 GitHub Webhook ➡️](#part-16)
 
+> 📒 **What you'll learn:** How to expose your local webhook server to the internet using Cloudflare Tunnel — so GitHub can reach it in Part 16.
+
+---
+
+
+### Theory
+
+Right now, your webhook server is running on `http://localhost:8000`. That's great for local testing via Swagger — but GitHub lives on the internet, and it can't reach your `localhost`.
+
+**Cloudflare Tunnel** solves this. It creates a secure, outbound-only connection from your machine to Cloudflare's global network. The result: a public HTTPS URL that forwards all traffic directly to your local server — no open ports, no firewall changes, no public IP required.
+
+```
+GitHub
+   │
+   ▼
+https://your-tunnel.trycloudflare.com   ← public URL (Cloudflare's edge)
+   │
+   ▼ (secure outbound tunnel)
+http://localhost:8000                    ← your machine
+```
+
+The tool that creates and manages this tunnel is called `cloudflared` — a lightweight CLI daemon you install once and run alongside your server.
+
+> 💡 **Why not ngrok?** Both tools do the same job. Cloudflare Tunnel is free, has no session time limits, and requires no account for Quick Tunnels. It's the better default for this project.
+
+> ⚠️ **Quick Tunnels vs Named Tunnels:**
+> We're using a **Quick Tunnel** — zero config, no Cloudflare account needed. The trade-off: the URL is random and changes every time you restart the tunnel. For development that's fine; for production you'd set up a Named Tunnel with a fixed custom domain.
+
+---
+
+
+### Step 1 — Install cloudflared
+
+#### Windows
+```bash
+winget install Cloudflare.cloudflared
+```
+
+#### macOS
+```bash
+brew install cloudflare/cloudflare/cloudflared
+```
+
+#### Linux (Debian / Ubuntu)
+```bash
+curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+sudo dpkg -i cloudflared.deb
+```
+
+After installing on **any OS**: close the terminal and open a new one so the `cloudflared` binary is available in your PATH.
+
+---
+
+
+### Step 2 — Verify the installation
+
+```bash
+cloudflared --version
+```
+
+You should see something like:
+
+```
+cloudflared version 2026.5.0
+```
+
+✅ Ready to tunnel.
+
+---
+
+
+### Step 3 — Start the FastAPI server
+
+First make sure `PIPELINE_IS_ACTIVE = True` in `webhook_v1.py`, then in the terminal, run:
+
+```bash
+py .\FastAPI_Webhook\webhook_v1.py
+```
+
+Terminal output:
+```
+INFO:     Uvicorn running on http://0.0.0.0:8000
+INFO:     Application startup complete.
+```
+
+Keep this terminal open.
+
+---
+
+
+### Step 4 — Create the tunnel
+
+Open a **second terminal** (keep the first one running) and run:
+
+```bash
+cloudflared tunnel --url http://localhost:8000
+```
+
+After a few seconds you'll see something similar to this:
+
+```
+INF +--------------------------------------------------------------------------------------------+
+INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
+INF |  https://rocky-screen-temperature-polo.trycloudflare.com                                   |
+INF +--------------------------------------------------------------------------------------------+
+```
+
+Your public URL is the `trycloudflare.com` address. Copy it — you'll need it in a moment.
+
+![Two terminals side by side — FastAPI server on the left, cloudflared tunnel on the right](assets/part_15/screenshot_cloudflared_1.jpg)
+
+> ⚠️ This URL is **temporary**. It changes every time you restart the tunnel. In Part 16 you'll paste it into GitHub — if you restart cloudflared, you'll need to update GitHub's webhook URL too.
+
+> 💡 The long log output after the URL is just diagnostic info — connection protocol (`quic`), Cloudflare edge location (`mad05`), connector ID, etc. The only line that matters for this part is the `trycloudflare.com` URL.
+
+---
+
+
+### Step 5 — Open Swagger via the public URL
+
+In your browser, open:
+
+```
+https://<your-address>.trycloudflare.com/docs
+```
+
+For me it was:
+
+```
+https://rocky-screen-temperature-polo.trycloudflare.com/docs
+```
+
+> ⚠️ Don't forget the `/docs` at the end — the root URL returns nothing, Swagger lives at `/docs`.
+
+You should see the exact same Swagger UI you used in Part 14 — but now accessible from anywhere on the internet.
+
+---
+
+
+### Step 6 — Test the full pipeline through the tunnel
+
+In Swagger, expand `POST /webhook` → **Try it out** and fill in:
+
+**`x-github-event`**: `release`
+
+**Request body:**
+```json
+{
+  "action": "published",
+  "release": {
+    "tag_name": "v1.2.6760",
+    "name": "Release v1.2.6760",
+    "body": "## What's Changed?\n- Front end thing\n- Cloudflared!\n- Improve performance",
+    "published_at": "2025-05-23T10:00:00Z",
+    "html_url": "https://github.com/user/repo/releases/tag/v1.2.6760"
+  },
+  "repository": {
+    "name": "mcp-release-notifier",
+    "full_name": "user/mcp-release-notifier",
+    "html_url": "https://github.com/user/mcp-release-notifier"
+  }
+}
+```
+
+> Note that in the "body": there is a "Cloudflared!". I added so we can spot the difference!
+
+Keep an eye on `MCP_Server/release_data/` and `MCP_Server/output/` — a new JSON and a new PDF should appear.
+
+Click **Execute**.
+
+---
+
+
+### Step 7 — Verify the result
+
+The webhook returns `{"received": true, "tag": "v1.2.6760"}` and the pipeline runs in the background. Check `MCP_Server/output/` — the new PDF should contain the text from the `body` field above, including "Cloudflared!".
+
+![VSCode with the generated PDF open on the left and the release JSON on the right — both highlighting the "Cloudflared" text](assets/part_15/screenshot_cloudflared_2.jpg)
+
+✅ Your local webhook is now reachable from the public internet. Next we will make GitHub talk to it.
+
+---
+
+
+### What to keep in mind
+
+> ⚠️ The **URL changes on every restart**. Whenever you stop and restart `cloudflared`, you get a new random URL — and you'll need to update the GitHub webhook URL in Part 16 to match.
+
+> ⚠️ Keep **both terminals open** for the rest of this part of the project: one for the FastAPI server, one for cloudflared. Closing either one breaks the connection.
+
+> 💡 **The tunnel is outbound-only.** Your machine never opens an inbound port. All traffic flows: internet → Cloudflare edge → outbound tunnel → your `localhost`. That's what makes it safe even on a home network.
+
+❎ When you're done experimenting, press `Ctrl + C` in both terminals to stop the server and the tunnel.
+
+---
+
+
+### 🎮 Quiz
+
 *(coming soon)*
+
+---
+
+
+> 💡 **MCP Curiosity**
+> Cloudflare Tunnel uses the **QUIC protocol** by default (you can see `protocol=quic` in the log output). QUIC is the same transport protocol underneath HTTP/3 — it reduces connection latency compared to TCP, which matters when your tunnel is relaying webhook payloads to a pipeline that fires multiple Claude API calls in sequence.
 
 [↑ Back to Table of Contents](#table-of-contents_)
 
