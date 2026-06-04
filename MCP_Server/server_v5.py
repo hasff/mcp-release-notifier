@@ -3,6 +3,14 @@ import json
 from pathlib import Path
 from datetime import datetime
 
+import httpx
+import os
+
+# discord url
+from dotenv import load_dotenv
+load_dotenv()
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
+
 # MCP
 from mcp.server.fastmcp import FastMCP
 
@@ -71,6 +79,37 @@ def create_pdf(version: str, repo_name: str, release_notes: str, published_at: s
 
     return {"success": True, "file": filename, "path": str(output_path)}
 
+# ─────────────────────────────────────────────
+# 🔧 TOOL 3 — send pdf to discord
+# ─────────────────────────────────────────────
+@mcp.tool()
+async def send_release_to_discord(file_name: str, repo_name: str, version: str) -> dict:
+    """
+    Sends the generated PDF release notes to a Discord channel via Webhook.
+    
+    Args:
+        file_name: The pdf file name, example: 'release_v1.2.0_20260523_141837.pdf'.
+        repo_name: Name of the repository.
+        version: The release version tag.
+    """
+    path = OUTPUT_DIR / file_name
+    if not path.exists():
+        return {"success": False, "error": f"File not found at {path}"}
+
+    
+    if not DISCORD_WEBHOOK_URL:
+        return {"success": False, "error": "DISCORD_WEBHOOK_URL not configured on server"}
+
+    payload = {"content": f"🚀 **New Release Published!**\nRepository: `{repo_name}`\nVersion: `{version}`"}
+    
+    async with httpx.AsyncClient() as client:
+        with open(path, "rb") as f:
+            files = {"file": (path.name, f, "application/pdf")}
+            response = await client.post(DISCORD_WEBHOOK_URL, data=payload, files=files)
+
+    if response.status_code in [200, 204]:
+        return {"success": True, "message": "PDF successfully sent to Discord"}
+    return {"success": False, "status_code": response.status_code, "error": response.text}
 
 
 # ─────────────────────────────────────────────
@@ -126,8 +165,6 @@ Write clear, concise release notes suitable for a developer audience.
     """)
 
 
-# ─────────────────────────────────────────────
-# MAIN
-# ─────────────────────────────────────────────
+
 if __name__ == "__main__":
     mcp.run()

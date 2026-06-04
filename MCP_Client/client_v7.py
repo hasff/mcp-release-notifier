@@ -102,7 +102,7 @@ def build_initial_message(release_payload, instructions):
             1. Call read_last_release to confirm the release data.
             2. Using the instructions below, write professional release notes for this release.
             3. Call create_pdf with the professional release notes you wrote.
-            4. Call send_release_to_discord using the 'path' returned by the PDF creation tool.
+            4. Call send_release_to_discord using the 'file name' returned by the PDF creation tool.
 
             Instructions for writing the release notes:
             {instructions}
