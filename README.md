@@ -3880,7 +3880,95 @@ That's the full pipeline — GitHub release → webhook → Claude → MCP serve
 
 #### ⚡ Quick Navigation: [⬅️ Part 17 — 🔗 Full Pipeline](#part-17) | [Part 19 — 📤 Sending the PDF ➡️](#part-19)
 
+> 📒 **What you'll learn:** How to create a Discord webhook — the delivery address that Part 19 will use to send the generated PDF directly to a channel.
+
+---
+
+
+### Context — why we're here
+
+Parts 14–17 were all about getting the pipeline wired end-to-end: FastAPI receives the GitHub event, Claude processes it, the MCP server generates the PDF. The pipeline is complete — but the PDF just lands quietly in a local `output/` folder. Nobody sees it.
+
+Parts 18 and 19 fix that. We'll expose a Discord webhook URL (this part) and then add a new MCP tool to the server that sends the PDF there (Part 19). That last tool is the reason we're returning to the MCP server — the delivery mechanism belongs there, alongside `read_last_release` and `create_pdf`, as a proper server-side capability.
+
+For now: let's get the Discord side ready.
+
+---
+
+
+### Step 1 — Create a Discord server (if you don't have one)
+
+You'll need a Discord server you control. If you don't have one, create a new one — click the **+** icon in the left sidebar of the Discord app and follow the prompts.
+
+> 💡 For this project, a simple private server is enough. I created one called **test**.
+
+---
+
+
+### Step 2 — Open channel settings
+
+In your server, hover over the text channel you want the PDF delivered to (e.g. **# general**). A small ⚙️ gear icon will appear to the right of the channel name — click it.
+
+![Gear icon next to the channel name](assets/part_18/screenshot_discord_1.jpg)
+
+---
+
+
+### Step 3 — Go to Integrations
+
+In the channel settings menu on the left, click **Integrations**.
+
+![Integrations option in the channel settings menu](assets/part_18/screenshot_discord_2.jpg)
+
+---
+
+
+### Step 4 — Create a webhook
+
+On the Integrations screen, click **Create Webhook** under the Webhooks section.
+
+![Create Webhook button on the Integrations screen](assets/part_18/screenshot_discord_3.jpg)
+
+---
+
+
+### Step 5 — Open the webhook
+
+Discord creates a webhook with a default name — **Captain Hook**. Click on it to expand its settings.
+
+![Captain Hook webhook entry](assets/part_18/screenshot_discord_4.jpg)
+
+---
+
+
+### Step 6 — Copy the webhook URL
+
+With the webhook expanded, click **Copy Webhook URL** and save it somewhere safe — you'll need it in Part 19.
+
+![Copy Webhook URL button](assets/part_18/screenshot_discord_5.jpg)
+
+> ⚠️ **Treat this URL like a password.** Anyone with it can post to your channel. Don't commit it to your repository — store it in your `.env` file the same way you stored `ANTHROPIC_API_KEY`.
+
+---
+
+
+### What's next
+
+With the webhook URL in hand, Part 19 will add a `send_release_to_discord` tool to the MCP server — taking us back where we started, extending the server's capabilities with a third tool that completes the delivery chain: **generate → send**.
+
+---
+
+
+### 🎮 Quiz
+
 *(coming soon)*
+
+---
+
+
+> 💡 **MCP Curiosity**
+> Discord webhooks are simple HTTP endpoints — they accept a POST with a JSON body and deliver the message to the channel. The interesting part is how we'll wrap that call: as an MCP tool on the server, discovered and invoked by Claude just like `read_last_release` and `create_pdf`. Same protocol, new capability.
+
 
 [↑ Back to Table of Contents](#table-of-contents_)
 
