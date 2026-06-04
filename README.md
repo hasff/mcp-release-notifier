@@ -3481,7 +3481,114 @@ The webhook returns `{"received": true, "tag": "v1.2.6760"}` and the pipeline ru
 
 #### ⚡ Quick Navigation: [⬅️ Part 15 — 🌐 Cloudflared](#part-15) | [Part 17 — 🔗 Full Pipeline ➡️](#part-17)
 
+> 📒 **What you'll learn:** How to register a GitHub webhook that sends release events to your local server — closing the loop between a real GitHub release and the pipeline we built.
+
+---
+
+
+### Before you start
+
+Make sure both terminals from Part 15 are still running:
+
+- **Terminal 1** — FastAPI server (`py .\FastAPI_Webhook\webhook_v1.py`)
+- **Terminal 2** — Cloudflare Tunnel (`cloudflared tunnel --url http://localhost:8000`)
+
+You'll need the `trycloudflare.com` URL from Terminal 2 — copy it now.
+
+> ⚠️ **The tunnel URL changes every time you restart `cloudflared`.** If you stopped and restarted it since Part 15, you have a new URL. You'll need to update the webhook URL in GitHub to match — we'll cover that at the end of this part.
+
+---
+
+
+### Step 1 — Open your repository Settings
+
+Navigate to any GitHub repository you control (or create a new one called `test`). In the top horizontal menu, click **Settings**.
+
+![GitHub repository — Settings tab highlighted](assets/part_16/screenshot_github_webhook_1.jpg)
+
+---
+
+
+### Step 2 — Navigate to Webhooks
+
+In the left sidebar, click **Webhooks**.
+
+![Settings page — Webhooks option highlighted in the left sidebar](assets/part_16/screenshot_github_webhook_2.jpg)
+
+> 💡 **GitHub may ask you to confirm your identity** before accessing this section — it will send a verification code to your email. This is normal; just follow the prompts.
+
+---
+
+
+### Step 3 — Add a new webhook
+
+On the Webhooks page, click **Add webhook**.
+
+![Webhooks page — Add webhook button highlighted](assets/part_16/screenshot_github_webhook_3.jpg)
+
+---
+
+
+### Step 4 — Fill in the webhook configuration
+
+You'll land on the webhook creation form. Fill in the four fields highlighted below:
+
+![Add webhook form — Payload URL, Content type, Secret, and Send me everything highlighted](assets/part_16/screenshot_github_webhook_4.jpg)
+
+| Field | Value |
+|---|---|
+| **Payload URL** | `https://<your-address>.trycloudflare.com/webhook` |
+| **Content type** | `application/json` |
+| **Secret** | a string of your choice (e.g. `my-secret`) |
+| **Which events?** | `Send me everything` |
+
+A few things to note:
+
+**Payload URL** — your tunnel URL from Part 15 with `/webhook` appended. It must match your FastAPI endpoint exactly. In my case it was `https://selective-titans-matching-campaign.trycloudflare.com/webhook` — yours will be different.
+
+**Content type** — set to `application/json`. GitHub will send the payload as JSON in the request body, which is what our webhook expects.
+
+**Secret** — the value GitHub will use to sign every webhook delivery with an HMAC-SHA256 signature. Write it down — you'll need it in the next part when we add signature verification. In production, use something long and random; 🚨 `my-secret` is for demo purposes only.
+
+**Send me everything** — fine for development. In production, I recommend you to use **"Let me select individual events"** and select only `Releases` — no reason to hit your server with events it will immediately ignore.
+
+Click **Add webhook**.
+
+---
+
+
+### Step 5 — Webhook created
+
+GitHub confirms the webhook was registered successfully.
+
+![Webhook created successfully confirmation screen](assets/part_16/screenshot_github_webhook_5.jpg)
+
+✅ GitHub will now send a POST request to your tunnel URL every time a release event is published on this repository.
+
+---
+
+
+### What to keep in mind
+
+> ⚠️ **If you restart `cloudflared`**, your tunnel URL changes. Come back to this Settings page, edit the webhook, and paste the new URL into the **Payload URL** field.
+
+> ⚠️ **The Secret you entered here** will be needed in Part 17 when we add `webhook_v2.py` and enable signature verification. Don't lose it.
+
+> 💡 GitHub sends a **ping event** immediately after you add a webhook — a test delivery to confirm the endpoint is reachable. If your server is running and the tunnel is up, you'll see a `200 OK` under the webhook settings page → **Recent Deliveries**.
+
+---
+
+
+### 🎮 Quiz
+
 *(coming soon)*
+
+---
+
+
+> 💡 **MCP Curiosity**
+> GitHub webhooks use HMAC-SHA256 signatures — the same cryptographic primitive used to sign JWT tokens and AWS request payloads. The server computes the expected signature from the secret and the raw request body, then compares it to the one GitHub sent. If they match, the request is authentic. In Part 17 we'll implement this in `webhook_v2.py`.
+
 
 [↑ Back to Table of Contents](#table-of-contents_)
 
