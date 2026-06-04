@@ -16,6 +16,19 @@ Think of it as a **warm-up project**: a hands-on way to get comfortable with MCP
 
 ---
 
+# Key Concepts Demonstrated
+
+✅ MCP Server Development 
+<br>✅ MCP Client Development
+<br>✅ Tool Discovery
+<br>✅ Resource Discovery
+<br>✅ Prompt Discovery
+<br>✅ Agentic Tool Calling
+<br>✅ Event-Driven AI Workflows
+<br>✅ Webhook Architectures
+<br>✅ PDF Generation Pipelines
+
+---
 
 ## Table of Contents
 
