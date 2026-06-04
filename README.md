@@ -3602,7 +3602,271 @@ GitHub confirms the webhook was registered successfully.
 
 #### ⚡ Quick Navigation: [⬅️ Part 16 — 🐙 GitHub Webhook](#part-16) | [Part 18 — 🎮 Discord Setup ➡️](#part-18)
 
+> 📒 **What you'll learn:** How to put everything together — secure the webhook with a GitHub signature, trigger a real release from GitHub, and watch the full pipeline run end to end.
+
+---
+
+
+### Theory
+
+In Part 14 we built the webhook and tested it manually via Swagger. In Parts 15 and 16 we exposed it to the internet and wired it to GitHub. Now we close the loop: a real GitHub release fires the webhook, which triggers the pipeline, which generates the PDF.
+
+One thing is missing before we can do that safely — **signature verification**. Without it, anyone who knows your webhook URL could send fake payloads. GitHub signs every request it sends using a shared secret; we need to validate that signature before trusting the payload.
+
+That's what `webhook_v2.py` adds.
+
+---
+
+
+### Code walkthrough
+
+> 📄 **File:** `FastAPI_Webhook/webhook_v2.py`
+
+---
+
+#### 1 — New imports
+
+```python
+import hashlib
+import hmac
+import os
+```
+
+`hashlib` and `hmac` — used together to compute and compare HMAC-SHA256 signatures. `os` — to read the secret from the environment.
+
+---
+
+#### 2 — Loading the secret
+
+```python
+WEBHOOK_SECRET = os.environ["GITHUB_WEBHOOK_SECRET"]
+```
+
+The secret is loaded from the environment, not hardcoded. You need to add it to your `.env` file:
+
+```
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+GITHUB_WEBHOOK_SECRET=your-secret-here
+```
+
+> ⚠️ Use the same secret you set in GitHub when configuring the webhook in Part 16. It can be any string — just keep it consistent on both sides.
+
+---
+
+#### 3 — Signature verification function
+
+```python
+def verify_signature(payload_body: bytes, signature_header: str) -> bool:
+    if not signature_header:
+        return False
+    
+    expected_signature = "sha256=" + hmac.new(
+        WEBHOOK_SECRET.encode("utf-8"),
+        payload_body,
+        hashlib.sha256,
+    ).hexdigest()
+
+    return hmac.compare_digest(expected_signature, signature_header)
+```
+
+GitHub computes an HMAC-SHA256 of the raw request body using your secret, and sends it in the `X-Hub-Signature-256` header formatted as `sha256=<hex>`.
+
+We compute the same hash on our side and compare using `hmac.compare_digest` — a constant-time comparison that prevents timing attacks.
+
+> 💡 **Why `hmac.compare_digest` and not `==`?** A regular string comparison short-circuits as soon as it finds a mismatch — an attacker can measure response time to guess the signature one character at a time. `compare_digest` always takes the same time regardless of where the mismatch is.
+
+---
+
+#### 4 — Step 0 in `github_webhook` — Verify Signature
+
+```python
+@app.post("/webhook")
+async def github_webhook(request: Request):
+
+    # ── 0. Verify Signature ────────────────────────
+    body = await request.body()
+    signature = request.headers.get("X-Hub-Signature-256")
+
+    if not verify_signature(body, signature):
+        raise HTTPException(status_code=401, detail="Invalid signature")
+    
+    # ... rest of the handler
+```
+
+This is the first thing the endpoint does — before parsing JSON, before filtering events. If the signature doesn't match, the request is rejected with a `401`.
+
+> ⚠️ Note that we read `request.body()` here — raw bytes — not `request.json()`. The signature is computed over the raw body; parsing it to JSON first would change the bytes and break the comparison.
+
+---
+
+#### 5 — Swagger helpers removed
+
+Compared to `webhook_v1.py`, the `x_github_event` and `body` parameters are gone from the function signature:
+
+```python
+# webhook_v1.py
+async def github_webhook(
+    request: Request,
+    x_github_event: str = Header(default=""),
+    body: GitHubWebhookPayload = None
+    ):
+
+# webhook_v2.py
+async def github_webhook(request: Request):
+```
+
+Those parameters existed only to render fillable fields in Swagger for manual testing. Since we're now receiving real GitHub events — and the signature check means we can't easily simulate requests through Swagger anyway — they're no longer needed.
+
+---
+
+### Switch to `webhook_v2.py`
+
+**Step 1** — Stop the server that's running `webhook_v1.py` (`Ctrl + C` in that terminal).
+
+**Step 2** — Start `webhook_v2.py`:
+
+```bash
+py FastAPI_Webhook/webhook_v2.py
+```
+
+> ⚠️ **Do NOT stop cloudflared.** The public URL is already registered in GitHub from Part 16. If you stop cloudflared, you'll get a new random URL and will need to either edit the existing webhook in GitHub's settings or create a new one. Leave that terminal running.
+
+---
+
+
+### Trigger a real GitHub release
+
+Everything is running. Time to fire a real release.
+
+---
+
+#### Step 1 — Go to your repository
+
+Open your GitHub repository. On the right side column you'll see a **Releases** section. Click **Create a new release**.
+
+![GitHub repo sidebar with "Create a new release" highlighted](assets/part_17/screenshot_github_release_1.jpg)
+
+---
+
+#### Step 2 — Fill in the release details
+
+On the **New release** screen, fill in:
+
+- **Tag** — e.g. `v1.3.0` (create a new tag or pick an existing one)
+- **Release title** — e.g. `Release v1.3.0`
+- **Release notes** — describe what changed; this is the raw content the AI will transform into a professional document
+
+When you're done, click **Publish release**.
+
+![New release form with Tag, Release title, Release notes fields and the Publish release button highlighted](assets/part_17/screenshot_github_release_2.jpg)
+
+---
+
+#### Step 3 — Confirm the release was created
+
+GitHub will redirect you to the release page. The release is now live.
+
+![Confirmed release page on GitHub](assets/part_17/screenshot_github_release_3.jpg)
+
+---
+
+
+### Watch the pipeline run
+
+Switch to your terminal — you'll see the webhook receive the payload and the pipeline kick off.
+
+---
+
+#### Terminal — pipeline triggered
+
+The webhook saves the payload and Claude starts working:
+
+![Terminal showing the payload saved and the first tool_use from Claude](assets/part_17/screenshot_terminal_pipeline_1.jpg)
+
+```
+💾 Saved payload to release_data/release_20260602_183021.json
+🚀 Release received: v1.3.0 — triggering pipeline...
+INFO:     ... "POST /webhook HTTP/1.1" 200 OK
+✅ Connected to MCP server
+
+🔧 Tools available: ['read_last_release', 'create_pdf']
+
+✍️  Prompt fetched (270 chars)
+
+🤖 Claude is working...
+
+___________________________________________
+|
+| 🛑 STOP REASON ==> tool_use  
+|__________________________________________
+
+   🔧 Claude calls: read_last_release({})
+   ↳  Result: {"action": "published", "release": {"tag_name": "v1.3.0", ...
+```
+
+Notice the HTTP 200 was returned before the pipeline finished — `asyncio.create_task` at work. The webhook responded instantly; Claude runs in the background.
+
+---
+
+#### Terminal — pipeline complete
+
+Claude finishes, the PDF is generated, and the project folders update:
+
+![Terminal showing end_turn and the output/release_data folders updated in the file explorer](assets/part_17/screenshot_terminal_pipeline_2.jpg)
+
+```
+___________________________________________
+|
+| 🛑 STOP REASON ==> tool_use  
+|__________________________________________
+
+   🔧 Claude calls: create_pdf({...})
+   ↳  Result: {"success": true, "file": "release_v1.3.0_20260602_183027.pdf", ...
+
+___________________________________________
+|
+| 🛑 STOP REASON ==> end_turn  
+|__________________________________________
+
+📍✅ Claude finished: I've successfully completed all three tasks...
+
+✅ Pipeline complete.
+```
+
+A new JSON appears in `release_data/` and a new PDF appears in `output/`.
+
+---
+
+### The generated PDF
+
+Raw release notes in, polished document out:
+
+![The generated PDF with professional release notes](assets/part_17/screenshot_pdf.jpg)
+
+That's the full pipeline — GitHub release → webhook → Claude → MCP server → PDF. ✅
+
+---
+
+### What to keep in mind
+
+> ⚠️ **Cloudflared URL is temporary.** If you restart cloudflared, the URL changes and you'll need to update the webhook URL in GitHub's repository settings (`Settings → Webhooks`).
+
+> ⚠️ **The `GITHUB_WEBHOOK_SECRET` must match on both sides.** The secret you put in `.env` must be identical to the one you configured in GitHub when setting up the webhook in Part 16.
+
+> 💡 **The pipeline is fire-and-forget.** `asyncio.create_task` means GitHub gets a `200 OK` immediately — even if Claude takes 10 seconds to finish. For production, a proper task queue (Celery, ARQ) would give you retries, monitoring, and crash recovery.
+
+---
+
+
+### 🎮 Quiz
+
 *(coming soon)*
+
+---
+
+
+> 💡 **MCP Curiosity**
+> What we just built is the foundation of every event-driven agentic system: an external trigger (GitHub release) fires a webhook, which hands off to an AI agent that orchestrates tools autonomously. The same pattern powers Slack bots, email processors, CI/CD assistants, and document automation pipelines — the primitives are identical, only the tools change.
 
 [↑ Back to Table of Contents](#table-of-contents_)
 
