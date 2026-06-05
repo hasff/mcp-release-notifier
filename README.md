@@ -4009,7 +4009,8 @@ Three files change: `server_v5.py`, `client_v7.py`, and `webhook_v3.py`.
 ---
 
 
-# 🖥️ Server — `server_v5.py`
+### 🖥️ Server — `server_v5.py`
+---
 
 ### Step 1 — Add the Discord webhook URL to `.env`
 
@@ -4156,8 +4157,8 @@ Version: 1.2.0.123456
 ---
 
 
-# 🔌 Client — `client_v7.py`
-
+### 🔌 Client — `client_v7.py`
+--- 
 ### What changed
 
 Two things:
@@ -4240,8 +4241,8 @@ Version: v1.2.6760
 ---
 
 
-# ⚡ Webhook — `webhook_v3.py`
-
+### ⚡ Webhook — `webhook_v3.py`
+---
 ### What changed
 
 Two small things:
@@ -4265,7 +4266,7 @@ Everything else — signature verification, payload filtering, `asyncio.create_t
 ---
 
 
-# 🔗 Final Test — GitHub to Discord
+## 🔗 Final Test — From GitHub to Discord
 
 Everything is in place. Time for the full circuit.
 
