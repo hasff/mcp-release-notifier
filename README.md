@@ -12,8 +12,6 @@ It may contain errors, simplifications, or opinionated choices made for clarity 
 Think of it as a **warm-up project**: a hands-on way to get comfortable with MCP before tackling the recommended courses at the end of this README.
 
 
-<a name="table-of-contents_"></a>
-
 ---
 
 # Key Concepts Demonstrated
@@ -27,6 +25,8 @@ Think of it as a **warm-up project**: a hands-on way to get comfortable with MCP
 <br>✅ Event-Driven AI Workflows
 <br>✅ Webhook Architectures
 <br>✅ PDF Generation Pipelines
+
+<a name="table-of-contents_"></a>
 
 ---
 
