@@ -3995,7 +3995,386 @@ With the webhook URL in hand, Part 19 will add a `send_release_to_discord` tool 
 
 #### ⚡ Quick Navigation: [⬅️ Part 18 — 🎮 Discord Setup](#part-18) | [Next Steps & Resources ➡️](#next-steps--resources_)
 
+> 📒 **What you'll learn:** How to add a third MCP tool that sends the generated PDF to Discord — and wire it into the full pipeline so every GitHub release ends up delivered to a channel automatically.
+
+---
+
+
+### Overview
+
+The pipeline already generates a polished PDF. The only thing missing is delivery — right now it just sits quietly in `output/`. In this part we add `send_release_to_discord` as a proper MCP tool on the server, extend the client to call it, update the webhook, and do a final end-to-end test from GitHub to Discord.
+
+Three files change: `server_v5.py`, `client_v7.py`, and `webhook_v3.py`.
+
+---
+
+
+# 🖥️ Server — `server_v5.py`
+
+### Step 1 — Add the Discord webhook URL to `.env`
+
+```
+DISCORD_WEBHOOK_URL=your-discord-webhook-url
+```
+
+Use the URL you copied from Discord in Part 18. Never commit it to your repository.
+
+---
+
+
+
+### Step 2 — Code walkthrough
+
+> 📄 **File:** `MCP_Server/server_v5.py`
+
+---
+
+#### Install dependencies
+
+```bash
+pip install httpx
+```
+
+#### New imports
+
+```python
+import httpx
+import os
+```
+
+`httpx` — an async-friendly HTTP client. We need it to POST the PDF file to Discord's webhook endpoint. `os` — to read the Discord URL from the environment.
+
+---
+
+
+#### Load the Discord webhook URL
+
+```python
+from dotenv import load_dotenv
+load_dotenv()
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
+```
+
+Same pattern as `ANTHROPIC_API_KEY` — loaded from `.env` at startup, never hardcoded.
+
+---
+
+
+#### Tool 3 — `send_release_to_discord`
+
+```python
+@mcp.tool()
+async def send_release_to_discord(file_name: str, repo_name: str, version: str) -> dict:
+    """
+    Sends the generated PDF release notes to a Discord channel via Webhook.
+    
+    Args:
+        file_name: The pdf file name, example: 'release_v1.2.0_20260523_141837.pdf'.
+        repo_name: Name of the repository.
+        version: The release version tag.
+    """
+    path = OUTPUT_DIR / file_name
+    if not path.exists():
+        return {"success": False, "error": f"File not found at {path}"}
+
+    if not DISCORD_WEBHOOK_URL:
+        return {"success": False, "error": "DISCORD_WEBHOOK_URL not configured on server"}
+
+    payload = {"content": f"🚀 **New Release Published!**\nRepository: `{repo_name}`\nVersion: `{version}`"}
+    
+    async with httpx.AsyncClient() as client:
+        with open(path, "rb") as f:
+            files = {"file": (path.name, f, "application/pdf")}
+            response = await client.post(DISCORD_WEBHOOK_URL, data=payload, files=files)
+
+    if response.status_code in [200, 204]:
+        return {"success": True, "message": "PDF successfully sent to Discord"}
+    return {"success": False, "status_code": response.status_code, "error": response.text}
+```
+
+A few things to note:
+
+**`async def`** — unlike the first two tools, this one is `async`. It makes a real HTTP call and we want to avoid blocking the event loop while waiting for Discord's response. FastMCP handles both sync and async tools transparently.
+
+**`httpx.AsyncClient`** — opens an async HTTP session scoped to the `async with` block. The session is automatically closed when the block exits, even if an error occurs.
+
+**`data=payload, files=files`** — Discord's webhook API accepts `multipart/form-data`: the message text goes in `data`, the file attachment goes in `files`. Both are sent in a single POST.
+
+**Error returns instead of exceptions** — the tool returns a descriptive dict on failure rather than raising. This is intentional: Claude reads the tool result and can decide how to react — retry, report the error, or continue.
+
+---
+
+
+### Step 3 — Test with the MCP Inspector
+
+Testing tools in isolation before wiring them to Claude is good practice — it catches configuration and logic issues without having to debug an AI conversation on top. Here's how:
+
+```bash
+mcp dev MCP_Server/server_v5.py
+```
+
+Open the URL shown in the terminal and connect:
+
+- **Command** — `py` on Windows, `python` or `python3` on macOS/Linux
+- **Arguments** — `MCP_Server/server_v5.py`
+- Click **Connect**
+
+![MCP Inspector connection screen](assets/part_19/screenshot_mcp_inspector.jpg)
+
+Navigate to **Tools** → **List Tools** → click **`send_release_to_discord`**.
+
+Fill in the parameters using a PDF that already exists in `MCP_Server/output/`:
+
+| Parameter | Example value |
+|---|---|
+| `file_name` | `release_v1.2.0_20260523_141837.pdf` |
+| `repo_name` | `my test repo name` |
+| `version` | `1.2.0.123456` |
+
+Keep an eye on your Discord channel, then click **Run Tool**.
+
+![Tool form filled in and Run Tool highlighted](assets/part_19/screenshot_mcp_inspector_2.jpg)
+
+Check Discord — the message and PDF attachment should appear:
+
+![Discord showing the PDF message from Captain Hook](assets/part_19/screenshot_discord.jpg)
+
+```
+🚀 New Release Published!
+Repository: my test repo name
+Version: 1.2.0.123456
+
+📎 release_v1.2.0_20260523_141837.pdf
+```
+
+✅ Tool verified. The MCP server can send PDFs to Discord.
+
+> 💡 This isolated test is exactly the kind of thing that saves hours of debugging later. If the Discord delivery breaks in the full pipeline, you'll know immediately that the problem is upstream — not in the tool itself.
+
+❎ When you're done, press `Ctrl + C` in the terminal to stop the server.
+
+---
+
+
+# 🔌 Client — `client_v7.py`
+
+### What changed
+
+Two things:
+
+**1 — `SERVER_SCRIPT` points to `server_v5.py`:**
+
+```python
+SERVER_SCRIPT = "MCP_Server/server_v5.py"
+```
+
+**2 — `build_initial_message` now includes step 4:**
+
+```python
+def build_initial_message(release_payload, instructions):
+    return f"""
+            A new GitHub release has been published. Here is the release payload:
+
+            <payload>
+            {json.dumps(release_payload, indent=2)}
+            </payload>
+
+            Your task:
+            1. Call read_last_release to confirm the release data.
+            2. Using the instructions below, write professional release notes for this release.
+            3. Call create_pdf with the professional release notes you wrote.
+            4. Call send_release_to_discord using the 'file name' returned by the PDF creation tool.
+
+            Instructions for writing the release notes:
+            {instructions}
+            """
+```
+
+Step 4 tells Claude explicitly to pass the `file_name` returned by `create_pdf` directly into `send_release_to_discord`. Without this instruction, Claude might be less predictable. 🔥 Remember, this is almost like you're giving directions to someone new to the job!
+
+---
+
+
+### Run it
+
+Make sure `test_full_pipeline()` is uncommented in `__main__`:
+
+```bash
+py MCP_Client/client_v7.py
+```
+
+Watch the terminal — you'll see four tool calls now:
+
+```
+🔧 Tools available: ['read_last_release', 'create_pdf', 'send_release_to_discord']
+
+🤖 Claude is working...
+
+   🔧 Claude calls: read_last_release({})
+   ↳  Result: {"action": "published", ...
+
+   🔧 Claude calls: create_pdf({...})
+   ↳  Result: {"success": true, "file": "release_v1.2.6760_..._pdf", ...
+
+   🔧 Claude calls: send_release_to_discord({"file_name": "release_v1.2.6760_..._pdf", ...})
+   ↳  Result: {"success": true, "message": "PDF successfully sent to Discord"}
+
+📍✅ Claude finished: ...
+✅ Pipeline complete.
+```
+
+And Discord receives the delivery:
+
+![Discord showing the PDF message from the client run](assets/part_19/screenshot_discord_client_result.jpg)
+
+```
+🚀 New Release Published!
+Repository: mcp-release-notifier
+Version: v1.2.6760
+
+📎 release_v1.2.6760_20260604_160205.pdf
+```
+
+✅ Client pipeline working end to end — read → write → deliver.
+
+---
+
+
+# ⚡ Webhook — `webhook_v3.py`
+
+### What changed
+
+Two small things:
+
+**1 — Imports `client_v7`:**
+
+```python
+from MCP_Client.client_v7 import run_pipeline 
+```
+
+**2 — Entry point references `webhook_v3`:**
+
+```python
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("webhook_v3:app", host="0.0.0.0", port=8000, reload=True)
+```
+
+Everything else — signature verification, payload filtering, `asyncio.create_task` — is identical to `webhook_v2.py`.
+
+---
+
+
+# 🔗 Final Test — GitHub to Discord
+
+Everything is in place. Time for the full circuit.
+
+---
+
+
+### Step 1 — Start the webhook server
+
+```bash
+py FastAPI_Webhook/webhook_v3.py
+```
+
+---
+
+
+### Step 2 — Start the tunnel
+
+In a second terminal:
+
+```bash
+cloudflared tunnel --url http://localhost:8000
+```
+
+Copy the new `trycloudflare.com` URL — it changes every time you restart cloudflared.
+
+---
+
+
+### Step 3 — Update the GitHub webhook URL
+
+Because cloudflared gives you a new URL on every restart, you need to update it in GitHub.
+
+Go to your repository → **Settings** → **Webhooks** → click **Edit** on the webhook you created in Part 16 (GitHub may ask for identity verification).
+
+Replace the **Payload URL** with:
+
+```
+https://<your-new-address>.trycloudflare.com/webhook
+```
+
+> ⚠️ Don't forget the `/webhook` at the end.
+
+Click **Update webhook**.
+
+---
+
+
+### Step 4 — Create a new GitHub release
+
+Go back to your repository's main page. In the right column, click **Releases** → **Draft a new release**.
+
+Fill in with something, suggestion:
+
+| Field | Value |
+|---|---|
+| **Tag** | `1.1.1` |
+| **Release title** | `Confirm if everything is working` |
+| **Release notes** | `In this release we are testing if the full pipeline is working. From Github to Discord!` |
+
+![New release form filled in](assets/part_19/screenshot_github_new_release.jpg)
+
+Click **Publish release**.
+
+---
+
+
+### Step 5 — Watch Discord
+
+Within a few seconds, the message and PDF appear in your Discord channel:
+
+![Discord message showing the final pipeline result](assets/part_19/screenshot_discord_success.jpg)
+
+---
+
+
+### Step 6 — The generated PDF
+
+Download the PDF directly from Discord and open it — you'll see the raw release notes transformed into a structured, professional document:
+
+![Generated PDF downloaded from Discord](assets/part_19/screenshot_pdf.jpg)
+
+✅ Full pipeline complete. GitHub release → webhook → Claude → MCP server → PDF → Discord.
+
+---
+
+
+### What to keep in mind
+
+> ⚠️ As the pipeline stands, the Discord webhook URL is configured on the **server** side — baked into `DISCORD_WEBHOOK_URL` in the server's `.env`. This means the server decides where deliveries go, regardless of what the client asks.
+
+> 💡 **Challenge:** Can you make the destination configurable from the client side? One approach:
+> - Add a `discord_webhook_url` parameter to `send_release_to_discord` on the server
+> - Read `DISCORD_WEBHOOK_URL` from `.env` on the **client**, and include it in the task description passed to Claude
+> - Claude will then pass it as an argument when calling the tool
+>
+> This moves the delivery target out of the server configuration and into the client — making the same MCP server reusable across different Discord servers or channels.
+
+---
+
+
+### 🎮 Quiz
+
 *(coming soon)*
+
+---
+
+
+> 💡 **MCP Curiosity**
+> What you just built follows the exact same pattern as production agentic systems — an external event triggers an autonomous agent that orchestrates a sequence of tools to completion. The same architecture powers document processing pipelines, CI/CD assistants, and automated reporting systems. The primitives — tools, prompts, a conversation loop — don't change. Only the tools do.
 
 [↑ Back to Table of Contents](#table-of-contents_)
 
