@@ -146,19 +146,19 @@ This project uses all three.
 └─────────────┼──────────────────────────┼────────────────────────┘
               │                          │
               ▼                          ▼
-┌─────────────────────┐    ┌──────────────────────────────┐
-│   Our MCP Server    │    │   GitHub MCP Server          │
-│                     │    │   (@modelcontextprotocol/    │
-│  read_last_release  │    │    server-github)            │
-│  create_pdf         │    │                              │
-│  send_to_discord    │    │  list_commits                │
-└──────────┬──────────┘    └──────────────────────────────┘
-           │
-           ▼
-┌─────────────────────┐
-│       Discord       │
-│  (PDF delivered)    │
-└─────────────────────┘
+   ┌─────────────────────┐    ┌──────────────────────────────┐
+   │   Our MCP Server    │    │   GitHub MCP Server          │
+   │                     │    │   (@modelcontextprotocol/    │
+   │  read_last_release  │    │    server-github)            │
+   │  create_pdf         │    │                              │
+   │  send_to_discord    │    │  list_commits                │
+   └──────────┬──────────┘    └──────────────────────────────┘
+              │
+              ▼
+   ┌─────────────────────┐
+   │       Discord       │
+   │  (PDF delivered)    │
+   └─────────────────────┘
 ```
 
 [↑ Back to Table of Contents](#table-of-contents_)
@@ -177,6 +177,7 @@ This project uses all three.
 - A GitHub account
 - A Discord server (you control)
 - An Anthropic API key → [console.anthropic.com](https://console.anthropic.com)
+- Nodejs installed → [nodejs.org](https://nodejs.org)
 
 [↑ Back to Table of Contents](#table-of-contents_)
 
