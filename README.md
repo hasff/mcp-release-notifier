@@ -192,7 +192,7 @@ This project uses all three.
 
 
 
-> **Note on tooling:** I'm using `pip` throughout this project for simplicity and accessibility. The MCP ecosystem recommends `uv` (a faster Python package manager), but if you're not familiar with it yet, `pip` works perfectly here. Feel free to switch to `uv` if you prefer.
+> 🚨 **Note on tooling:** I'm using `pip` throughout this project for simplicity and accessibility. The MCP ecosystem recommends `uv` (a faster Python package manager), but if you're not familiar with it yet, `pip` works perfectly here. Feel free to switch to `uv` if you prefer.
 > All examples in this project are built and tested with `pip` — not `uv`.
 
 ### 1. Clone the repository
@@ -225,8 +225,6 @@ source venv/bin/activate
 
 #### ⚡ Quick Navigation: [⬅️ Setup](#setup_) | [Part 01 ➡️](#part-1)
 
-
-🚨🚨🚨
 ``` 
 mcp-release-notifier/
 ├── .env.example
