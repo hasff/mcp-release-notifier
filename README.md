@@ -2311,6 +2311,8 @@ Once all results are collected, they're appended as a new `user` message and the
 >
 > 💻 2) MCP Server → MCP Client: *[list of tools]*
 
+&nbsp;
+
 > 🔌 3) MCP Client → MCP Server: *"give me the prompt template"*
 >
 > 💻 4) MCP Server → MCP Client: *[rendered prompt]*
