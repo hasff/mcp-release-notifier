@@ -4,13 +4,16 @@
 
 ---
 
-
 ⚠️ **Heads up**
 
 This is a personal learning project — not an official Anthropic or MCP resource.
 It may contain errors, simplifications, or opinionated choices made for clarity over correctness.
 Think of it as a **warm-up project**: a hands-on way to get comfortable with MCP before tackling the recommended courses at the end of this README.
 
+Before you dive in, please keep a few important things in mind:
+1. **Fast-Paced AI Evolution:** The AI landscape moves incredibly fast. While specific tools, libraries, or minor implementation details might change over time, the core concepts, protocol primitives, and foundational logic taught here will remain highly relevant.
+2. **Third-Party Interfaces:** UI screenshots, website layouts, and external platforms (like GitHub, Discord, or developer consoles) are completely out of my control and will likely change. Focus on the underlying logic — the workflow steps and connection mechanics remain the same regardless of the visual wrap.
+3. **Built with AI Assistance:** This tutorial was written with AI help — mainly for English refinement and phrasing. The architecture, curriculum, and all technical decisions are my own.
 
 ---
 
@@ -4875,15 +4878,18 @@ Want to go deeper? Here are the resources that inspired and complement this proj
 
 ---
 
-
-## Get in Touch
+## 📬 Get in Touch
 
 #### ⚡ Quick Navigation: [⬅️ Next Steps & Resources](#next-steps--resources_) | [⬆️ Back to Top](#mcp-release-notifier)
 
+Found this useful? Have questions or ideas? I'd love to hear from you.
 
-📩 Contact: hugoferro.business (at) gmail.com
+This project (including explaining everything step by step) took two weeks of full-time work — nights, weekends, and holidays included — purely because this is the kind of thing I enjoy building. If you're looking for someone who works like that, let's talk.
 
-🔗 [LinkedIn](https://www.linkedin.com/in/hugo-ferro-1434b414/)
+*  🔗 **[LinkedIn](https://www.linkedin.com/in/hugo-ferro-1434b414/)**
+*  📩 **Email:** hugoferro (at) gmail.com
+
+*Open to interesting projects and collaborations.*
 
 [↑ Back to Table of Contents](#table-of-contents_)
 
