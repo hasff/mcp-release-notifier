@@ -56,6 +56,7 @@ Think of it as a **warm-up project**: a hands-on way to get comfortable with MCP
 - [Part 17 — 🔗 Full Pipeline](#part-17)
 - [Part 18 — 🎮 Discord Setup](#part-18)
 - [Part 19 — 📤 Sending the PDF](#part-19)
+- [Part 20 — 🐙 GitHub MCP Server](#part-20)
 - [Next Steps & Resources](#next-steps--resources_)
 - [Get in Touch](#get-in-touch_)
 
@@ -2911,7 +2912,7 @@ The best way to understand how Claude uses tools is to make it struggle. Here ar
 
 ---
 
-# ⚡ FastAPI Webhook
+# ⚡ Webhook
 
 ## Part 14 — ⚡ FastAPI Webhook
 
@@ -3270,7 +3271,6 @@ Notice the HTTP 200 was returned **before** the pipeline finished — that's `as
 ---
 
 
-
 ## Part 15 — 🌐 Cloudflared
 
 #### ⚡ Quick Navigation: [⬅️ Part 14 — ⚡ FastAPI Webhook](#part-14) | [Part 16 — 🐙 GitHub Webhook ➡️](#part-16)
@@ -3610,7 +3610,7 @@ GitHub confirms the webhook was registered successfully.
 ---
 
 
-
+# 🔗 Full Pipeline
 ## Part 17 — 🔗 Full Pipeline
 
 #### ⚡ Quick Navigation: [⬅️ Part 16 — 🐙 GitHub Webhook](#part-16) | [Part 18 — 🎮 Discord Setup ➡️](#part-18)
@@ -3993,7 +3993,7 @@ With the webhook URL in hand, Part 19 will add a `send_release_to_discord` tool 
 
 ## Part 19 — 📤 Sending the PDF
 
-#### ⚡ Quick Navigation: [⬅️ Part 18 — 🎮 Discord Setup](#part-18) | [Next Steps & Resources ➡️](#next-steps--resources_)
+#### ⚡ Quick Navigation: [⬅️ Part 18 — 🎮 Discord Setup](#part-18) | [Part 20 — 🐙 GitHub MCP Server ➡️](#part-20)
 
 > 📒 **What you'll learn:** How to add a third MCP tool that sends the generated PDF to Discord — and wire it into the full pipeline so every GitHub release ends up delivered to a channel automatically.
 
@@ -4379,6 +4379,476 @@ Download the PDF directly from Discord and open it — you'll see the raw releas
 
 [↑ Back to Table of Contents](#table-of-contents_)
 
+<a name="part-20"></a>
+
+---
+
+## Part 20 — 🐙 GitHub MCP Server
+
+#### ⚡ Quick Navigation: [⬅️ Part 19 — 📤 Sending the PDF](#part-19) | [Next Steps & Resources ➡️](#next-steps--resources_)
+
+> 📒 **What you'll learn:** How to connect to an external MCP server — the official MCP reference server for GitHub — and give Claude the ability to read real commit history and include it in the generated release notes.
+
+---
+
+
+### Theory
+
+Up to this point, the only MCP server in the pipeline was the one we built ourselves. This part adds a second one — the **official GitHub reference server** provided by the MCP ecosystem team — and wires it alongside ours so Claude can use tools from both.
+
+This is the pattern MCP was designed for: multiple servers, each exposing its own set of tools, all visible to the same model. The client discovers tools from every connected server and passes the combined list to Claude. Claude doesn't know or care which server a tool lives on — it just picks the right one for the task.
+
+> ⚠️ **The GitHub MCP server runs on your machine.** Unlike a hosted API, it runs as a local subprocess — exactly like our own server. The client launches it via `npx`, which means you need **Node.js** installed.
+
+> 💡 **Architectural Note:** The package used in this pipeline (`@modelcontextprotocol/server-github`) is the official reference implementation maintained by the Model Context Protocol open-source team. However, GitHub has also released its own official native server (written in Go and run via Docker) available at `github/github-mcp-server`. 
+>
+> For this pipeline, we use the NPM package as it integrates seamlessly and lightweight into our Python/Node environment without requiring Docker.
+
+---
+
+
+### Install Node.js (if needed)
+
+The GitHub MCP server is distributed as an npm package and launched with `npx`. Check if Node.js is already installed:
+
+```bash
+node --version
+```
+
+If you see a version number (e.g. `v22.13.1`) — you're good. If not, download it from [nodejs.org](https://nodejs.org) and install the **LTS** version.
+
+---
+
+
+### Step 1 — Generate a GitHub Personal Access Token
+
+The GitHub MCP server authenticates via a Personal Access Token (PAT). Here's how to create one.
+
+---
+
+#### Open GitHub Settings
+
+Click on your profile photo in the top-right corner. A menu will appear — click **Settings**.
+
+![GitHub profile menu with Settings highlighted](assets/part_20/screenshot_github_1.jpg)
+
+---
+
+#### Go to Developer Settings
+
+In the Settings page, scroll down the left sidebar until you find **Developer settings** and click it.
+
+![Settings page with Developer settings highlighted in the left sidebar](assets/part_20/screenshot_github_2.jpg)
+
+---
+
+#### Select Fine-grained tokens
+
+In the Developer settings menu, expand **Personal access tokens** and click **Fine-grained tokens**.
+
+![Developer settings with Fine-grained tokens highlighted](assets/part_20/screenshot_github_3.jpg)
+
+---
+
+#### Generate a new token
+
+On the Fine-grained tokens page, click **Generate new token**.
+
+![Fine-grained tokens page with Generate new token button highlighted](assets/part_20/screenshot_github_4.jpg)
+
+---
+
+#### Fill in the token name
+
+Give your token a descriptive name so you remember what it's for.
+
+![Token name field filled in](assets/part_20/screenshot_github_5.jpg)
+
+---
+
+#### Select repository access
+
+Under **Repository access**, select **Only select repositories** and pick the repository you want the pipeline to read commits from.
+
+![Repository access section with Only select repositories selected and a specific repo chosen](assets/part_20/screenshot_github_6.jpg)
+
+---
+
+#### Set permissions
+
+Under **Permissions**, click **Add permissions** and add:
+
+- **Contents** → Read-only
+- **Metadata** → Read-only
+
+![Permissions section with Contents and Metadata set to read-only, and Generate token button highlighted](assets/part_20/screenshot_github_7.jpg)
+
+When done, click **Generate token**.
+
+---
+
+#### Confirm token generation
+
+A confirmation popup will appear — click **Generate token**.
+
+![Confirmation popup with Generate token button highlighted](assets/part_20/screenshot_github_8.jpg)
+
+<img src="assets/imgs/alert.png" width="50" alt="ALERT"> GitHub will now display your token — **copy it immediately**. It won't be shown again.
+
+---
+
+### Step 2 — Update your `.env` file
+
+Add the token and the repo details to your `.env`:
+
+```
+GITHUB_PERSONAL_ACCESS_TOKEN=your-github-token
+GITHUB_OWNER=your-github-username
+GITHUB_REPO=your-repo-name
+```
+
+`GITHUB_OWNER` — your GitHub username (e.g. `hasff`).
+`GITHUB_REPO` — the repository you want to read commits from (e.g. `test`).
+
+These two values are passed as arguments to the `list_commits` tool — the GitHub MCP server needs them to know which repository to query.
+
+---
+
+
+### Code walkthrough
+
+> 📄 **File:** `MCP_Client/client_v8.py`
+
+---
+
+#### Updated `connect_to_mcp_server`
+
+The original `connect_to_mcp_server` always launched the same server with a hardcoded script path. In `client_v8.py` it now accepts optional parameters:
+
+```python
+async def connect_to_mcp_server(
+        exit_stack: AsyncExitStack, 
+        command: str = "python", 
+        args: list[str] = None,
+        env: dict = None
+    ) -> ClientSession:
+    mcp_server_params = StdioServerParameters(
+        command=command,
+        args=args if args is not None else [SERVER_SCRIPT],
+        env=env,
+    )
+```
+
+**Default values are unchanged** — calling `connect_to_mcp_server(stack)` still launches our own server exactly as before. No existing call sites need to be updated.
+
+**New calls can pass a different command** — which is exactly how we launch the GitHub server:
+
+```python
+github_session = await connect_to_mcp_server(
+    stack,
+    command="npx",
+    args=["-y", "@modelcontextprotocol/server-github"],
+    env={**os.environ, "GITHUB_PERSONAL_ACCESS_TOKEN": os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")}
+)
+```
+
+`npx -y @modelcontextprotocol/server-github` — downloads and runs the GitHub MCP server package on the fly. No manual install needed.
+
+`env={**os.environ, ...}` — inherits all current environment variables and injects the GitHub token on top. The server reads it from the environment to authenticate.
+
+> 💡 Both sessions are registered with the same `exit_stack` — both will be cleaned up automatically when the pipeline finishes.
+
+---
+
+#### `test_github` — verify the connection
+
+Before wiring the GitHub server into the full pipeline, there's a dedicated test function:
+
+```python
+def test_github():
+    async def _test_github():
+        async with AsyncExitStack() as stack:
+            github_session = await connect_to_mcp_server(
+                stack,
+                command="npx",
+                args=["-y", "@modelcontextprotocol/server-github"],
+                env={**os.environ, "GITHUB_PERSONAL_ACCESS_TOKEN": os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")}
+            )            
+
+            github_tools_result = await github_session.list_tools()
+            # ... prints all available tools
+
+            tool_name = "list_commits"
+            tool_args = {'owner': OWNER, 'repo': REPO}
+            list_commits = await github_session.call_tool(tool_name, tool_args)
+            # ... prints recent commits
+            
+    asyncio.run(_test_github())
+```
+
+Same pattern as `test_tools` from Part 09 — list the available tools, then call one directly to confirm it works end-to-end.
+
+---
+
+### Run `test_github`
+
+In `client_v8.py`, uncomment `test_github()` in `__main__` and run:
+
+```bash
+py MCP_Client/client_v8.py
+```
+
+You should see something like this:
+
+```
+🔧 🐙 GitHub Test
+✅ Connected to MCP server: github-mcp-server
+
+Tools
+-----------------------------------------------------------------
+1)  name: create_or_update_file | description: Create or update a single file in a GitHub repository
+2)  name: search_repositories | description: Search for GitHub repositories
+3)  name: create_repository | description: Create a new GitHub repository in your account
+4)  name: get_file_contents | description: Get the contents of a file or directory from a GitHub repository
+5)  name: push_files | description: Push multiple files to a GitHub repository in a single commit
+...
+10)  name: list_commits | description: Get list of commits of a branch in a GitHub repository
+...
+-----------------------------------------------------------------
+
+1) Hugo Ferro | 2026-06-05T16:19:06Z | changed database from sqlite to mysql.
+2) Hugo Ferro | 2026-06-05T14:58:05Z | added \n for user to see it well
+3) Hugo Ferro | 2026-06-05T14:57:27Z | fixed print hello world
+...
+```
+
+✅ GitHub MCP server connected. Commits readable.
+
+---
+
+
+### Wiring the GitHub server into `run_pipeline`
+
+With the connection verified, we bring it into the full pipeline. Three changes in `run_pipeline`:
+
+---
+
+#### 1 — Two sessions, one pipeline
+
+```python
+client_session = await connect_to_mcp_server(stack)
+
+github_session = await connect_to_mcp_server(
+    stack,
+    command="npx",
+    args=["-y", "@modelcontextprotocol/server-github"],
+    env={**os.environ, "GITHUB_PERSONAL_ACCESS_TOKEN": os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")}
+)
+```
+
+Both sessions are alive for the entire pipeline run.
+
+---
+
+#### 2 — Combined tool list and dispatch map
+
+```python
+anthropic_tools      = await get_tools_for_anthropic(client_session)
+github_anthropic_tools = await get_tools_for_anthropic(github_session)
+
+# Build a dispatch map — tool name → which session to use
+tool_session_map = {}
+for t in anthropic_tools:
+    tool_session_map[t['name']] = client_session
+for t in github_anthropic_tools:
+    tool_session_map[t['name']] = github_session
+```
+
+`tool_session_map` is a simple dict: `tool_name → session`. When Claude calls a tool, we look up which session owns it and route the call there.
+> <img src="assets/imgs/alert.png" width="20" alt="ALERT"> **Warning: Tool Name Collisions** <img src="assets/imgs/alert.png" width="20" alt="ALERT">
+>
+> 🚨 Because we are building a flat dictionary where the key is the `tool_name`, if two different MCP servers expose a tool with the exact same name, the last one registered will silently overwrite the previous one.
+>
+> 🚨 In production-grade pipelines, you should implement a check to detect collisions before mapping, or namespacing (e.g., prefixing tool names like `github_repo_get`) to prevent routing conflicts. For this tutorial, we ensure our custom tools have unique names that don't clash with the GitHub server.
+
+Both tool lists are merged when sent to Claude:
+
+```python
+response = anthropic_client.messages.create(
+    ...
+    tools=anthropic_tools + github_anthropic_tools,
+    messages=messages,
+)
+```
+
+Claude sees one flat list of tools. It has no concept of "which server" — it just picks the right tool by name.
+
+---
+
+#### 3 — Routing in the tool use loop
+
+```python
+for block in response.content:
+    if block.type == "tool_use":
+        session_to_use = tool_session_map[block.name]
+        result = await session_to_use.call_tool(block.name, block.input)
+```
+
+One line change: instead of always calling `client_session.call_tool(...)`, we look up the correct session first.
+
+---
+
+#### Updated `build_initial_message`
+
+Step 2 of the task description now tells Claude to find a tool that reads the last 3 commits:
+
+```python
+def build_initial_message(release_payload, instructions):
+    OWNER = os.getenv("GITHUB_OWNER")
+    REPO  = os.getenv("GITHUB_REPO")
+
+    return f"""
+            ...
+            Your task:
+            1. Call read_last_release to confirm the release data.
+            2. Call a suitable tool to read the text of last 3 commits. 
+               The owner= {OWNER} and repo= {REPO}. 
+            3. Using the instructions below, write professional release notes for this release. Include the commits readed!
+            4. Call create_pdf with the professional release notes you wrote.
+            5. Call send_release_to_discord using the 'file name' returned by the PDF creation tool.
+            ...
+            """
+```
+
+Notice step 2 is intentionally open: *"Call a suitable tool"* — not `list_commits` by name. Claude has the full tool list and will figure out the right one from the description. That's the MCP discovery pattern working as intended.
+
+---
+
+
+### Run the full pipeline
+
+Comment out `test_github()` and uncomment `test_full_pipeline()` in `__main__`, then run:
+
+```bash
+py MCP_Client/client_v8.py
+```
+
+The terminal now shows two new tool calls:
+
+```
+🔧 Tools available: ['read_last_release', 'create_pdf', 'send_release_to_discord']
+
+🔧 🐙 Tools available: ['create_or_update_file', 'search_repositories', ..., 'list_commits', ...]
+
+🤖 Claude is working...
+
+   🔧 Claude calls: read_last_release({})
+   ↳  Result: {"action": "published", "release": {"tag_name": "v1.2.6760", ...
+
+   🔧 Claude calls: list_commits({"owner": "hasff", "repo": "test", "perPage": 3})
+   ↳  Result: [{"sha": "a4c460fe...", "commit": {"message": "changed database from sqlite to mysql.", ...
+```
+
+And it finishes with a clear confirmation that commits were included:
+
+```
+📍✅ Claude finished: ## ✅ Release Processing Complete!
+
+### 2. **Last 3 Commits Retrieved** ✓
+- Changed database from sqlite to mysql
+- Added \n for user to see it well
+- Fixed print hello world
+
+### 4. **PDF Created** ✓
+- File: `release_v1.2.6760_20260605_181710.pdf`
+
+### 5. **Discord Notification Sent** ✓
+
+✅ Pipeline complete.
+```
+
+---
+
+
+### The generated PDF
+
+The PDF delivered to Discord now includes a **Recent Commits** section — written by Claude from the raw commit messages:
+
+![Generated PDF with commits section](assets/part_20/screenshot_pdf.jpg)
+
+```
+### Recent Commits Included
+
+The following commits have been integrated into this release:
+
+1. Database Infrastructure Upgrade: Migrated database system from SQLite to MySQL,
+improving scalability, concurrent access handling, and data integrity for production environments.
+
+2. Output Formatting Enhancement: Improved user interface output formatting for better
+readability and clarity in user-facing displays.
+
+3. Core Functionality Stabilization: Fixed critical issues in core print functionality to ensure
+reliable output generation.
+```
+
+Three raw commit messages → three professionally written paragraphs. The same transformation the prompt template applies to the release body — now applied to commit history too. ✅
+
+---
+
+
+### Full webhook integration
+
+This part focused on running via `client_v8.py` directly. If you want to test the full webhook-triggered flow — GitHub release → webhook → pipeline with commits → Discord — `webhook_v4.py` is ready to use:
+
+```bash
+py FastAPI_Webhook/webhook_v4.py
+```
+
+It's identical to `webhook_v3.py` but imports `client_v8.run_pipeline`. Start it alongside cloudflared, update the GitHub webhook URL, publish a release, and the full chain runs end to end.
+
+---
+
+
+### 🎮 Quiz
+
+*(coming soon)*
+
+---
+
+
+> 💡 **MCP Curiosity**
+> What we just demonstrated is **multi-server composition** — one of MCP's core design goals. A single client session can discover and use tools from any number of servers simultaneously. The model sees a unified tool catalog and routes calls based on tool descriptions alone, with no awareness of server boundaries. This is what makes MCP more powerful than point-to-point API integrations: swap a server, add a new one, and the model adapts automatically — no client code changes needed.
+
+[↑ Back to Table of Contents](#table-of-contents_)
+
+---
+
+# 🎉 Project Complete! 😎
+
+---
+
+### In this project you built:
+
+| | |
+|---|---|
+| ✅ MCP Server from scratch | Tools, resources, and a prompt template: registered and discoverable via the MCP protocol |
+| ✅ MCP Client from scratch | stdio connection, runtime discovery, multi-server routing |
+| ✅ Autonomous AI pipeline | Claude driving a tool use loop, calling `read_last_release → list_commits → create_pdf → send_release_to_discord` |
+| ✅ FastAPI webhook | GitHub events, HMAC-SHA256 signature verification, background tasks |
+| ✅ Cloudflare Tunnel | Local server exposed to the internet, zero config |
+| ✅ GitHub webhook integration | Real releases triggering an AI workflow |
+| ✅ Discord delivery | PDF delivered to a channel automatically on every release |
+| ✅ Multi-server MCP composition | Connecting to an external MCP server alongside your own, merging tool catalogs, and letting Claude route calls across both |
+| ✅ Debug tooling | `DebugList` + metadata layer for full conversation visibility |
+
+---
+
+If you find this helpful and feel you learned something new, a ⭐ on the repo is more than enough thanks.
+
+[↑ Back to Table of Contents](#table-of-contents_)
+
+
+
 <a name="next-steps--resources_"></a>
 
 ---
@@ -4387,7 +4857,7 @@ Download the PDF directly from Discord and open it — you'll see the raw releas
 
 ## Next Steps & Resources
 
-#### ⚡ Quick Navigation: [⬅️ Part 19 — 📤 Sending the PDF](#part-19) | [Get in Touch ➡️](#get-in-touch_)
+#### ⚡ Quick Navigation: [⬅️ Part 20 — 🐙 GitHub MCP Server](#part-20) | [Get in Touch ➡️](#get-in-touch_)
 
 Want to go deeper? Here are the resources that inspired and complement this project.
 
