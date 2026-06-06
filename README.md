@@ -114,23 +114,51 @@ This project uses all three.
 
 #### ⚡ Quick Navigation: [⬅️ What is MCP?](#what-is-mcp_) | [Requirements ➡️](#requirements_)
 
-
-🚨🚨🚨
 ```
-GitHub Release
-      │
-      ▼
-  Webhook (FastAPI + Cloudflared)
-      │
-      ▼
-  Claude API  ──►  MCP Client  ──►  MCP Server
-                                        │
-                              ┌─────────┴─────────┐
-                              ▼                   ▼
-                         create_pdf          send_to_discord
-                              │
-                              ▼
-                        PDF → Discord
+┌─────────────────────────────────────────────────────────────────┐
+│                        GitHub                                   │
+│                   (publishes a release)                         │
+└────────────────────────────┬────────────────────────────────────┘
+                             │  release event (HMAC-signed)
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                  Webhook  (FastAPI + Cloudflared)               │
+│         validates signature · saves payload · fires pipeline    │
+└────────────────────────────┬────────────────────────────────────┘
+                             │  release payload (dict)
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       MCP Client                                │
+│                                                                 │
+│   1. discovers tools from both MCP servers                      │
+│   2. builds initial message (payload + prompt template)         │
+│   3. runs the tool use loop with Claude                         │
+│                                                                 │
+│        ┌──────────────────┐      ┌───────────────────────┐      │
+│        │   tool use loop  │◄────►│      Claude API       │      │
+│        │                  │      └───────────────────────┘      │
+│        └────────┬─────────┘                                     │
+│                 │ tool calls                                    │
+│        ┌────────▼──────────────────────────────────────┐        │
+│        │              Tool Routing                     │        │
+│        └────┬──────────────────────────┬───────────────┘        │
+│             │                          │                        │
+└─────────────┼──────────────────────────┼────────────────────────┘
+              │                          │
+              ▼                          ▼
+┌─────────────────────┐    ┌──────────────────────────────┐
+│   Our MCP Server    │    │   GitHub MCP Server          │
+│                     │    │   (@modelcontextprotocol/    │
+│  read_last_release  │    │    server-github)            │
+│  create_pdf         │    │                              │
+│  send_to_discord    │    │  list_commits                │
+└──────────┬──────────┘    └──────────────────────────────┘
+           │
+           ▼
+┌─────────────────────┐
+│       Discord       │
+│  (PDF delivered)    │
+└─────────────────────┘
 ```
 
 [↑ Back to Table of Contents](#table-of-contents_)
@@ -1296,15 +1324,15 @@ Since the server uses `stdio` by default, the client will connect via stdio too 
 
 ### Install dependencies
 
-If you're working in the **same virtual environment** as the server, you already have `mcp` installed — no action needed.
+The server runs as a subprocess launched by the client — it inherits the same Python environment. If you followed Part 01, you already have everything you need.
 
-If the client runs in a **separate virtual environment**, install it:
+If you're starting from a fresh `.venv` and don't need the MCP Inspector, the base package is enough:
 
 ```bash
 pip install mcp
 ```
 
-> ⚠️ The `mcp` package covers both sides — server and client primitives live in the same library. The `[cli]` extra we installed in Part 01 is only needed for the MCP Inspector (dev tooling). For the client, the base package is enough.
+> 💡 `mcp[cli]` vs `mcp` — the `[cli]` extra installs the MCP Inspector tooling. The client doesn't use it, so the base package is sufficient. Both server and client primitives live in the same library.
 
 ---
 
