@@ -216,3 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Runtime artifacts
+MCP_Server/release_data/*.json
+MCP_Server/output/*.pdf
+
+# Keep folders tracked
+!MCP_Server/release_data/.gitkeep
+!MCP_Server/output/.gitkeep

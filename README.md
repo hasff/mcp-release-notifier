@@ -229,18 +229,39 @@ source venv/bin/activate
 🚨🚨🚨
 ``` 
 mcp-release-notifier/
+├── .env.example
+├── .gitignore
+├── README.md
+│
 ├── MCP_Server/
-|   ├── server_v1.py   ← Part 01: bare server
-|   ├── server_v2.py   ← Part 02 and 03: + tools
-|   ├── server_v3.py   ← Part 04 and 05: + resources  
-|   ├── server_v4.py   ← Part 06 and 07: + prompts
-|   └── release_data/
+│   ├── server_v1.py          ← Part 01: bare server
+│   ├── server_v2.py          ← Part 02–03: + tools
+│   ├── server_v3.py          ← Part 04–05: + resources
+│   ├── server_v4.py          ← Part 06–07: + prompts
+│   ├── server_v5.py          ← Part 19: + send_to_discord
+│   ├── release_data/         ← webhook payloads (git-ignored)
+│   └── output/               ← generated PDFs (git-ignored)
+│
 ├── MCP_Client/
-├── Webhook/
-├── Pipeline/
-├── Discord/
-├── assets/
-└── README.md
+│   ├── helpers.py            ← DebugList (Part 13)
+│   ├── client_v1.py          ← Part 08: connection setup
+│   ├── client_v2.py          ← Part 09: testing tools
+│   ├── client_v3.py          ← Part 10: testing resources
+│   ├── client_v4.py          ← Part 11: testing prompts
+│   ├── client_v5.py          ← Part 12: AI pipeline
+│   ├── client_v6.py          ← Part 13: debug + experiments
+│   ├── client_v7.py          ← Part 19: + send_to_discord
+│   └── client_v8.py          ← Part 20: + GitHub MCP Server
+│
+├── FastAPI_Webhook/
+│   ├── webhook_v1.py         ← Part 14: basic webhook
+│   ├── webhook_v2.py         ← Part 17: + signature verification
+│   ├── webhook_v3.py         ← Part 19: uses client_v7
+│   └── webhook_v4.py         ← Part 20: uses client_v8
+│
+└── assets/
+    ├── imgs/
+    └── part_XX/              ← screenshots per part
 ```
 
 > ⚠️ Each part folder will be detailed as the project progresses.
