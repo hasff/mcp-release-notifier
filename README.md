@@ -2311,42 +2311,70 @@ Once all results are collected, they're appended as a new `user` message and the
 >
 > 💻 2) MCP Server → MCP Client: *[list of tools]*
 
+```python
+print(f"🔧 Tools available: {[t['name'] for t in anthropic_tools]}\n")
+```
+
 &nbsp;
 
 > 🔌 3) MCP Client → MCP Server: *"give me the prompt template"*
 >
 > 💻 4) MCP Server → MCP Client: *[rendered prompt]*
 
+```python
+print(f"✍️  Prompt fetched ({len(prompt_text)} chars)\n")
+```
+
 &nbsp;
+
+```python
+print("🤖 Claude is working...\n")
+```
 
 **🔁 Tool Use Loop**
 > 🔌 5) MCP Client → Claude API: *[tools + initial message]*
 >
 > 🤖 6) Claude API → MCP Client: *stop_reason: tool_use / tool: read_last_release*
 
+```python
+print(f"   🔧 Claude calls: read_last_release()")
+```
 &nbsp;
 
 > 🔌 7) MCP Client → MCP Server: *call_tool("read_last_release")*
 >
 > 💻 8) MCP Server → MCP Client: *[tool_result]*
 
+```python
+print(f"   ↳  Result: ...\n")
+```
 &nbsp;
 
 > 🔌 9) MCP Client → Claude API: *[full history + tool_result]*
 >
 > 🤖 10) Claude API → MCP Client: *stop_reason: tool_use / tool: create_pdf*
 
+```python
+print(f"   🔧 Claude calls: create_pdf({...})")
+```
 &nbsp;
 
 > 🔌 11) MCP Client → MCP Server: *call_tool("create_pdf")*
 >
 > 💻 12) MCP Server → MCP Client: *[tool_result]*
 
+```python
+print(f"   ↳  Result: ...\n")
+```
 &nbsp;
 
 > 🔌 13) MCP Client → Claude API: *[full history + tool_result]*
 >
 > 🤖 14) Claude API → MCP Client: *stop_reason: end_turn*
+
+```python
+print(f"📍✅ Claude finished: {final_text}")
+```
 
 ---
 
