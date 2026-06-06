@@ -2311,45 +2311,36 @@ Once all results are collected, they're appended as a new `user` message and the
 >
 > 💻 2) MCP Server → MCP Client: *[list of tools]*
 
--
--
--
-
-**🔁 Tool Use Loop**
 > 🔌 3) MCP Client → MCP Server: *"give me the prompt template"*
 >
 > 💻 4) MCP Server → MCP Client: *[rendered prompt]*
 
--
--
+&nbsp;
 
+**🔁 Tool Use Loop**
 > 🔌 5) MCP Client → Claude API: *[tools + initial message]*
 >
 > 🤖 6) Claude API → MCP Client: *stop_reason: tool_use / tool: read_last_release*
 
--
--
+&nbsp;
 
 > 🔌 7) MCP Client → MCP Server: *call_tool("read_last_release")*
 >
 > 💻 8) MCP Server → MCP Client: *[tool_result]*
 
--
--
+&nbsp;
 
 > 🔌 9) MCP Client → Claude API: *[full history + tool_result]*
 >
 > 🤖 10) Claude API → MCP Client: *stop_reason: tool_use / tool: create_pdf*
 
--
--
+&nbsp;
 
 > 🔌 11) MCP Client → MCP Server: *call_tool("create_pdf")*
 >
 > 💻 12) MCP Server → MCP Client: *[tool_result]*
 
--
--
+&nbsp;
 
 > 🔌 13) MCP Client → Claude API: *[full history + tool_result]*
 >
