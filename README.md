@@ -2304,28 +2304,56 @@ Once all results are collected, they're appended as a new `user` message and the
 
 ### Full flow — at a glance
 
-```
-Initial message (release payload + writing instructions)
-        │
-        ▼
-  Claude API  →  tool_use: read_last_release
-        │
-  MCP Server executes read_last_release
-        │
-  Result returned to Claude
-        │
-        ▼
-  Claude API  →  tool_use: create_pdf (with polished release notes)
-        │
-  MCP Server executes create_pdf
-        │
-  Result returned to Claude
-        │
-        ▼
-  Claude API  →  stop_reason: end_turn
-        │
-  Pipeline complete ✅
-```
+![PDF output](assets/part_12/events_diagram.jpg)
+
+**⚙️ Setup**
+> 🔌 1) MCP Client → MCP Server: *"what tools do you have?"*
+>
+> 💻 2) MCP Server → MCP Client: *[list of tools]*
+
+-
+-
+-
+
+**🔁 Tool Use Loop**
+> 🔌 3) MCP Client → MCP Server: *"give me the prompt template"*
+>
+> 💻 4) MCP Server → MCP Client: *[rendered prompt]*
+
+-
+-
+
+> 🔌 5) MCP Client → Claude API: *[tools + initial message]*
+>
+> 🤖 6) Claude API → MCP Client: *stop_reason: tool_use / tool: read_last_release*
+
+-
+-
+
+> 🔌 7) MCP Client → MCP Server: *call_tool("read_last_release")*
+>
+> 💻 8) MCP Server → MCP Client: *[tool_result]*
+
+-
+-
+
+> 🔌 9) MCP Client → Claude API: *[full history + tool_result]*
+>
+> 🤖 10) Claude API → MCP Client: *stop_reason: tool_use / tool: create_pdf*
+
+-
+-
+
+> 🔌 11) MCP Client → MCP Server: *call_tool("create_pdf")*
+>
+> 💻 12) MCP Server → MCP Client: *[tool_result]*
+
+-
+-
+
+> 🔌 13) MCP Client → Claude API: *[full history + tool_result]*
+>
+> 🤖 14) Claude API → MCP Client: *stop_reason: end_turn*
 
 ---
 
