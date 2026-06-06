@@ -292,9 +292,7 @@ Think of the server as a **capability provider**: it doesn't decide when or how 
 
 > 💡 **In practice**, most developers interact with MCP as **clients** — connecting to servers that already exist (GitHub, Notion, Slack...). Building your own server is less common, and typically you'd focus on one side or the other. In this project, we build both — but that's intentional: the goal is to understand the full picture, not to model a production setup.
 
-🚨🚨🚨
-In this project, our server will eventually expose two tools (`read_last_release` and `create_pdf`), two resources, and one prompt. We also plan to consume an **external MCP server** (e.g. GitHub) as a client — but that part is still being designed. But first — let's get the skeleton running.
-🚨🚨🚨
+
 
 ---
 
@@ -365,28 +363,24 @@ Now open the URL shown in the terminal. You'll land on the MCP Inspector:
 
 ![Connect button](assets/part_01/screenshot_browser.jpg)
 
-Click **Connect** to establish the connection with your server.
 
-> ⚠️ **Command field:** The Inspector pre-fills this based on your system.
-> - Windows: typically `py`
-> - macOS / Linux: typically `python` or `python3`
->
-> The **Arguments** field should contain the path to your server file (e.g. `MCP_Server/server_v1.py`).
+1) **Command field** - The Inspector pre-fills this, you should change accordingly with your system:
+    - Windows: typically `py`
+    - macOS / Linux: typically `python` or `python3`
+
+2) **Arguments** field should contain the path to your server file (e.g. `MCP_Server/server_v1.py`).
+
+3) Click **Connect** to establish the connection with your server.
 
 ![Connect button](assets/part_01/screenshot_connect_button.jpg)
+
+
 
 Once connected — no tools, no resources, nothing yet. But the server is alive and responding. ✅
 
 ![Connect button](assets/part_01/screenshot_connected.jpg)
 
 ❎ When you're done, press `Ctrl + C` in the terminal to stop the server.
-
----
-
-
-### 🎮 Quiz
-
-*(coming soon)*
 
 ---
 
@@ -550,13 +544,6 @@ Three things to note here:
 ---
 
 
-### 🎮 Quiz
-
-*(coming soon)*
-
----
-
-
 > 💡 **MCP Curiosity**
 > Every MCP server publishes a machine-readable catalog — `tools/list`, `resources/list`, `prompts/list`. This means an AI agent can discover new capabilities at runtime without any code changes on the client side.
 
@@ -710,13 +697,6 @@ Open the `output/` folder in your project — the PDF should be there. Open it t
 > ⚠️ The MCP Inspector sends one tool call at a time — it's a manual testing environment, not an AI agent. In later parts, the AI client will chain these calls automatically based on the task.
 
 ❎ When you're done, press `Ctrl + C` in the terminal to stop the server.
-
----
-
-
-### 🎮 Quiz
-
-*(coming soon)*
 
 ---
 
@@ -910,13 +890,6 @@ releases://by/{id}         → fetch the notes for a specific one
 ---
 
 
-### 🎮 Quiz
-
-*(coming soon)*
-
----
-
-
 > 💡 **MCP Curiosity**
 > Resources are exposed via `resources/list` and `resources/read` in the MCP protocol. A client can call `resources/list` at any time to discover what's available — no hardcoding needed. This is the same discovery mechanism used by Tools (`tools/list`) and Prompts (`prompts/list`).
 
@@ -1047,13 +1020,6 @@ Two things to observe here:
 ---
 
 
-### 🎮 Quiz
-
-*(coming soon)*
-
----
-
-
 > 💡 **MCP Curiosity**
 > Template resources are a pattern unique to MCP — most APIs require you to know the full URL upfront. In MCP, a client can discover that `releases://by/{id}` exists, understand its parameter from the description, and construct the URI dynamically at runtime. The model can do the same.
 
@@ -1120,13 +1086,6 @@ Write clear, concise release notes suitable for a developer audience.
 **The docstring** — exposed to clients as the prompt description, just like with tools.
 
 **The return value** — a fully formed string ready to be sent to the model. Notice it's not just a placeholder: it sets a **persona** (`You are a technical writer`), provides **context** (the raw changes), and defines the **expected output** (clear, concise, developer-focused). That's the recipe in action.
-
----
-
-
-### 🎮 Quiz
-
-*(coming soon)*
 
 ---
 
@@ -1241,13 +1200,6 @@ That's the pipeline we're building. The Inspector is just confirming the ingredi
 > ⚠️ The MCP Inspector shows the prompt **before** it reaches a model — it's a static preview, not an AI completion. To see the output, you'd need to pass this message to the Claude API directly.
 
 ❎ When you're done, press `Ctrl + C` in the terminal to stop the server.
-
----
-
-
-### 🎮 Quiz
-
-*(coming soon)*
 
 ---
 
@@ -1551,13 +1503,6 @@ In Part 09, we'll use this session to call tools directly — no AI involved yet
 ---
 
 
-### 🎮 Quiz
-
-*(coming soon)*
-
----
-
-
 > 💡 **MCP Curiosity**
 > The `stdio` transport is not limited to local processes — it's also how Claude Desktop connects to MCP servers configured in its `claude_desktop_config.json`. When you add a server to Claude Desktop, it launches it as a subprocess and communicates via stdio, exactly like we're doing here.
 > 
@@ -1765,13 +1710,6 @@ The `release_notes` string we passed in (`'Fix logging \n Fix backend \n Added b
 ---
 
 
-### 🎮 Quiz
-
-*(coming soon)*
-
----
-
-
 > 💡 **MCP Curiosity**
 > `call_tool` returns a `CallToolResult` object — not just the raw output. It includes `content` (the tool's response), `isError` (whether the tool raised an exception), and `meta`. The model reads `isError` too — if a tool fails, it can decide to retry or adjust its approach.
 
@@ -1928,12 +1866,6 @@ Template Resource result for uri= releases://by/release_20260524_103042
 
 ---
 
-### 🎮 Quiz
-
-*(coming soon)*
-
----
-
 > 💡 **MCP Curiosity**
 > MCP supports **dynamic tool discovery**: models can list and understand available capabilities in real-time, without pre-configuration.
 
@@ -2073,13 +2005,6 @@ Write clear, concise release notes suitable for a developer audience.
 > ⚠️ `get_prompt` returns the **rendered template** — not a model completion. The parameters are injected, the string is built, but the model hasn't seen it yet. To generate actual release notes, you'd pass `result.messages` directly to the Claude API.
 
 > 💡 **`result.messages` is already API-shaped.** The structure returned by `get_prompt` matches what the Claude API expects in `messages`.
-
----
-
-
-### 🎮 Quiz
-
-*(coming soon)*
 
 ---
 
@@ -2416,12 +2341,6 @@ Initial message (release payload + writing instructions)
 ### What's next?
 
 The pipeline is wired. In Part 13 we run it for real — a sample release payload in, a polished PDF out. We'll also poke at `build_initial_message` and see what happens when we take the training wheels off. 👀
-
----
-
-### 🎮 Quiz
-
-*(coming soon)*
 
 ---
 
@@ -2948,12 +2867,6 @@ The best way to understand how Claude uses tools is to make it struggle. Here ar
 
 ---
 
-### 🎮 Quiz
-
-*(coming soon)*
-
----
-
 > 💡 **MCP Curiosity**
 > The `tool_use_id` / `tool_result` pairing is part of the Anthropic Messages API spec, not MCP. MCP returns the execution result; the client wraps it in the correct API format. This separation — MCP handles tool execution, the Anthropic SDK handles conversation structure — is what makes the architecture composable.
 
@@ -3304,14 +3217,6 @@ Notice the HTTP 200 was returned **before** the pipeline finished — that's `as
 
 ---
 
-
-### 🎮 Quiz
-
-*(coming soon)*
-
----
-
-
 > 💡 **MCP Curiosity**
 > In a production setup, you'd also verify the `X-Hub-Signature-256` header GitHub includes with every webhook delivery. It's an HMAC-SHA256 signature of the payload using a secret you configure in GitHub — validating it ensures the request actually came from GitHub and wasn't spoofed. We will do that in the following parts! 👇
 
@@ -3523,13 +3428,6 @@ The webhook returns `{"received": true, "tag": "v1.2.6760"}` and the pipeline ru
 ---
 
 
-### 🎮 Quiz
-
-*(coming soon)*
-
----
-
-
 > 💡 **MCP Curiosity**
 > Cloudflare Tunnel uses the **QUIC protocol** by default (you can see `protocol=quic` in the log output). QUIC is the same transport protocol underneath HTTP/3 — it reduces connection latency compared to TCP, which matters when your tunnel is relaying webhook payloads to a pipeline that fires multiple Claude API calls in sequence.
 
@@ -3639,13 +3537,6 @@ GitHub confirms the webhook was registered successfully.
 > ⚠️ **The Secret you entered here** will be needed in Part 17 when we add `webhook_v2.py` and enable signature verification. Don't lose it.
 
 > 💡 GitHub sends a **ping event** immediately after you add a webhook — a test delivery to confirm the endpoint is reachable. If your server is running and the tunnel is up, you'll see a `200 OK` under the webhook settings page → **Recent Deliveries**.
-
----
-
-
-### 🎮 Quiz
-
-*(coming soon)*
 
 ---
 
@@ -3922,13 +3813,6 @@ That's the full pipeline — GitHub release → webhook → Claude → MCP serve
 ---
 
 
-### 🎮 Quiz
-
-*(coming soon)*
-
----
-
-
 > 💡 **MCP Curiosity**
 > What we just built is the foundation of every event-driven agentic system: an external trigger (GitHub release) fires a webhook, which hands off to an AI agent that orchestrates tools autonomously. The same pattern powers Slack bots, email processors, CI/CD assistants, and document automation pipelines — the primitives are identical, only the tools change.
 
@@ -4019,13 +3903,6 @@ With the webhook expanded, click **Copy Webhook URL** and save it somewhere safe
 ### What's next
 
 With the webhook URL in hand, Part 19 will add a `send_release_to_discord` tool to the MCP server — taking us back where we started, extending the server's capabilities with a third tool that completes the delivery chain: **generate → send**.
-
----
-
-
-### 🎮 Quiz
-
-*(coming soon)*
 
 ---
 
@@ -4414,13 +4291,6 @@ Download the PDF directly from Discord and open it — you'll see the raw releas
 > - Claude will then pass it as an argument when calling the tool
 >
 > This moves the delivery target out of the server configuration and into the client — making the same MCP server reusable across different Discord servers or channels.
-
----
-
-
-### 🎮 Quiz
-
-*(coming soon)*
 
 ---
 
@@ -4856,13 +4726,6 @@ py FastAPI_Webhook/webhook_v4.py
 ```
 
 It's identical to `webhook_v3.py` but imports `client_v8.run_pipeline`. Start it alongside cloudflared, update the GitHub webhook URL, publish a release, and the full chain runs end to end.
-
----
-
-
-### 🎮 Quiz
-
-*(coming soon)*
 
 ---
 
