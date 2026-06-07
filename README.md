@@ -4,6 +4,14 @@
 
 ---
 
+Picture this: your team ships a new release. The changelog reads *"fixed stuff, improved frontend, tweaked the login."* Nobody has time to write anything better — you're developers, not copywriters.
+
+A few seconds later, a polished PDF lands in your Discord server. Professional release notes, structured sections, clean language — generated automatically from those three bullet points.
+
+That's what this project does.
+
+---
+
 ⚠️ **Heads up**
 
 This is a personal learning project — not an official Anthropic or MCP resource.
