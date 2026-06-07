@@ -2425,7 +2425,7 @@ print(f"   ↳  Result: ...\n")
 
 > 🔌 9) MCP Client → Claude API: *[full history + tool_result]*
 >
-> 🤖 10) Claude API → MCP Client: *stop_reason: tool_use / tool: create_pdf* 👈 Tasks 2. and 3. — Claude writes the notes and calls create_pdf
+> 🤖 10) Claude API → MCP Client: *stop_reason: tool_use / tool: create_pdf* 👈 Tasks 2. and 3. — Claude writes the notes and *asks to call* create_pdf
 
 ```python
 print(f"   🔧 Claude calls: create_pdf({...})")
