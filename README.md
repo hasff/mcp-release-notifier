@@ -2217,6 +2217,24 @@ Write clear, concise release notes suitable for a developer audience.
 
 ##### `build_initial_message`
 
+```python
+    return f"""
+            A new GitHub release has been published. Here is the release payload:
+
+            <payload>
+            {json.dumps(release_payload, indent=2)}
+            </payload>
+
+            Your task:
+            1. Call read_last_release to confirm the release data.
+            2. Using the instructions below, write professional release notes for this release.
+            3. Call create_pdf with the professional release notes you wrote.
+
+            Instructions for writing the release notes:
+            {instructions}
+            """  
+```
+
 This function combines two things into a single user message:
 - The **release payload** — so Claude knows what release to work with
 - The **prompt instructions** — the professional writing guidelines fetched from the MCP server
