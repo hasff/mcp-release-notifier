@@ -337,6 +337,7 @@ Now open the URL shown in the terminal. You'll land on the MCP Inspector:
 
 ![Connect button](assets/part_01/screenshot_browser.jpg)
 
+Before clicking **Connect**, check the pre-filled fields:
 
 1) **Command field** - The Inspector pre-fills this, you should change accordingly with your system:
     - Windows: typically `py`
@@ -770,6 +771,8 @@ The address never changes. The content can — every call re-reads the folder.
 def get_release_by_id(id: str) -> str: ...
 ```
 The `{id}` in the URI maps directly to the `id: str` parameter in the function. FastMCP handles the extraction automatically.
+
+> 💡 Template resources can have multiple parameters — `releases://by/{owner}/{repo}/{id}` maps to `def get_release(owner: str, repo: str, id: str)`. FastMCP extracts all of them automatically.
 
 [⬆️ **`Part 4`**](#part-4)
 
