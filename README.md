@@ -1600,8 +1600,8 @@ This is the same `tools/list` call the MCP Inspector uses under the hood.
 
 #### Block 2 — Call `read_last_release`
 
-> 📄 **File:** `MCP_Client/client_v2.py`
 ```python
+# 📄 File: MCP_Client/client_v2.py
 tool_name = "read_last_release"
 read_last_release = await client_session.call_tool(tool_name)
 print(read_last_release)
@@ -1609,8 +1609,8 @@ print(read_last_release)
 
 Calls the tool by name with no arguments — matches the server definition:
 
-> 📄 **File:** `MCP_Server/server_v4.py`
 ```python
+# 📄 File: MCP_Server/server_v4.py
 @mcp.tool()
 def read_last_release() -> dict:
     """Reads the most recent release payload from release_data/."""
@@ -1621,8 +1621,8 @@ def read_last_release() -> dict:
 
 #### Block 3 — Call `create_pdf`
 
-> 📄 **File:** `MCP_Client/client_v2.py`
 ```python
+# 📄 File: MCP_Client/client_v2.py
 tool_name = "create_pdf"
 tool_args = {
     'version'       : '444',
@@ -1636,8 +1636,8 @@ print(create_pdf)
 
 Here we pass arguments — and they map directly to the server-side function signature:
 
-> 📄 **File:** `MCP_Server/server_v4.py`
 ```python
+# 📄 File: MCP_Server/server_v4.py
 @mcp.tool()
 def create_pdf(version: str, repo_name: str, release_notes: str, published_at: str) -> dict:
 ```
