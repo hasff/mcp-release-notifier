@@ -953,8 +953,14 @@ Notice the response structure: `uri`, `mimeType`, and `text`. The `text` field c
 
 ---
 
-
 ### Test 2 — `releases://by/{id}` (Template Resource)
+
+> ⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️
+>
+> ⚠️ **MCP Inspector caching behaviour:** After calling a template resource (`releases://by/{id}`),
+> the Inspector may return cached results for subsequent static resource calls (`releases://list`).
+> Refresh the page to reset if you notice stale results.
+
 
 Switch to the **Resource Templates** section and click **List Templates**. You should see `get_release_by_id` appear below.
 
