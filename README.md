@@ -2384,16 +2384,30 @@ print(f"🔧 Tools available: {[t['name'] for t in anthropic_tools]}\n")
 print(f"✍️  Prompt fetched ({len(prompt_text)} chars)\n")
 ```
 
-&nbsp;
+##### This is what Claude receives as the first message — notice the numbered tasks:
+```python
+    return f"""
+            ...
+
+            Your task:
+            1. Call read_last_release to confirm the release data.
+            2. Using the instructions below, write professional release notes for this release.
+            3. Call create_pdf with the professional release notes you wrote.
+
+            ...
+
+            """  
+```
 
 ```python
 print("🤖 Claude is working...\n")
 ```
 
 **🔁 Tool Use Loop**
+
 > 🔌 5) MCP Client → Claude API: *[tools + initial message]*
 >
-> 🤖 6) Claude API → MCP Client: *stop_reason: tool_use / tool: read_last_release*
+> 🤖 6) Claude API → MCP Client: *stop_reason: tool_use / tool: read_last_release* 👈 This is what task 1. describes
 
 ```python
 print(f"   🔧 Claude calls: read_last_release()")
@@ -2411,7 +2425,7 @@ print(f"   ↳  Result: ...\n")
 
 > 🔌 9) MCP Client → Claude API: *[full history + tool_result]*
 >
-> 🤖 10) Claude API → MCP Client: *stop_reason: tool_use / tool: create_pdf*
+> 🤖 10) Claude API → MCP Client: *stop_reason: tool_use / tool: create_pdf* 👈 Tasks 2. and 3. — Claude writes the notes and calls create_pdf
 
 ```python
 print(f"   🔧 Claude calls: create_pdf({...})")
