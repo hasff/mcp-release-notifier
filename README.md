@@ -114,52 +114,7 @@ This project uses all three.
 
 #### ⚡ Quick Navigation: [⬅️ What is MCP?](#what-is-mcp_) | [Requirements ➡️](#requirements_)
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        GitHub                                   │
-│                   (publishes a release)                         │
-└────────────────────────────┬────────────────────────────────────┘
-                             │  release event (HMAC-signed)
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  Webhook  (FastAPI + Cloudflared)               │
-│         validates signature · saves payload · fires pipeline    │
-└────────────────────────────┬────────────────────────────────────┘
-                             │  release payload (dict)
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                       MCP Client                                │
-│                                                                 │
-│   1. discovers tools from both MCP servers                      │
-│   2. builds initial message (payload + prompt template)         │
-│   3. runs the tool use loop with Claude                         │
-│                                                                 │
-│        ┌──────────────────┐      ┌───────────────────────┐      │
-│        │   tool use loop  │◄────►│      Claude API       │      │
-│        │                  │      └───────────────────────┘      │
-│        └────────┬─────────┘                                     │
-│                 │ tool calls                                    │
-│        ┌────────▼──────────────────────────────────────┐        │
-│        │              Tool Routing                     │        │
-│        └────┬──────────────────────────┬───────────────┘        │
-│             │                          │                        │
-└─────────────┼──────────────────────────┼────────────────────────┘
-              │                          │
-              ▼                          ▼
-   ┌─────────────────────┐    ┌──────────────────────────────┐
-   │   Our MCP Server    │    │   GitHub MCP Server          │
-   │                     │    │   (@modelcontextprotocol/    │
-   │  read_last_release  │    │    server-github)            │
-   │  create_pdf         │    │                              │
-   │  send_to_discord    │    │  list_commits                │
-   └──────────┬──────────┘    └──────────────────────────────┘
-              │
-              ▼
-   ┌─────────────────────┐
-   │       Discord       │
-   │  (PDF delivered)    │
-   └─────────────────────┘
-```
+![PDF output](assets/architecture/img1.jpg)
 
 [↑ Back to Table of Contents](#table-of-contents_)
 
@@ -2079,7 +2034,7 @@ load_dotenv()
 
 `json` — used to serialise tool inputs and results when logging.
 
-[⬆️ **`P12`**](#part-12)
+[⬆️ **`Part 12`**](#part-12)
 
 ---
 
@@ -2164,7 +2119,7 @@ anthropic_tools = [
 
 We already know how to list tools from the MCP server — we did it in Part 09. The difference here is the format: the Anthropic API expects tools as a list of dicts with `name`, `description`, and `input_schema`. This function fetches the tools from MCP and converts them into that shape. Claude will use this list to know what actions are available to it.
 
-[⬆️ **`P12`**](#part-12)
+[⬆️ **`Part 12`**](#part-12)
 
 ---
 
@@ -2248,7 +2203,7 @@ This is why we append to `messages` throughout the loop — we're manually build
 
 The response is appended immediately as the assistant turn. This ensures that on the next iteration, Claude can see its own previous reasoning and tool requests as part of the conversation history.
 
-[⬆️ **`P12`**](#part-12)
+[⬆️ **`Part 12`**](#part-12)
 
 ---
 
@@ -2305,7 +2260,7 @@ Each result is packaged as a `tool_result` block and tied back to its originatin
 
 Once all results are collected, they're appended as a new `user` message and the loop restarts. Claude receives its own previous tool requests *and* the results, and decides what to do next: call more tools, or produce the final response.
 
-[⬆️ **`P12`**](#part-12)
+[⬆️ **`Part 12`**](#part-12)
 
 ---
 
