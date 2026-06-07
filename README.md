@@ -2182,6 +2182,16 @@ We already know how to list tools from the MCP server — we did it in Part 09. 
 
 ##### `get_prompt_for_release_notes`
 
+```python
+    version     = release_payload.get("release", {}).get("tag_name", "unknown")
+    raw_changes = release_payload.get("release", {}).get("body", "")
+
+    prompt_result = await client_session.get_prompt(
+        "generate_release_notes",
+        arguments={"version": version, "changes": raw_changes}
+    )
+```
+
 Also familiar from Part 11 — we call `get_prompt` on the MCP server. Here we inject the `tag_name` (version) and `body` (raw changes) from the release payload directly into the prompt template. The result is the fully rendered instructions that will guide Claude's writing style and tone.
 
 > Remember this?
