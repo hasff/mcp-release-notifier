@@ -168,8 +168,14 @@ cd mcp-release-notifier
 ### 2. Create a virtual environment
 
 ```bash
-python -m venv venv
+# Windows
+py -m venv venv
 
+# macOS / Linux
+python -m venv venv
+```
+
+```bash
 # Windows
 venv\Scripts\activate
 
