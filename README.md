@@ -327,6 +327,8 @@ Curious to see if it's already alive? Run this in your terminal:
 mcp dev MCP_Server/server_v1.py
 ```
 
+💡 **First run may take a minute** — `mcp dev` installs the Inspector dependencies on first use. Subsequent runs are smoother.
+
 You should see something like this:
 
 ![Connect button](assets/part_01/screenshot_terminal.jpg)
