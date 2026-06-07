@@ -2141,17 +2141,21 @@ This is the core of Part 12. The function is structured in two phases: **setup**
 ```python
 messages = []
 
+# ### Phase 1 - 1)
 # - Get available tools
 anthropic_tools = await get_tools_for_anthropic(client_session)
 print(f"🔧 Tools available: {[t['name'] for t in anthropic_tools]}\n")
 
+# ### Phase 1 - 2)
 # - Get 'generate_release_notes' prompt
 prompt_text = await get_prompt_for_release_notes(client_session, release_payload)
 print(f"✍️  Prompt fetched ({len(prompt_text)} chars)\n")
 
+# ### Phase 1 - 3)
 # — Build initial message
 initial_message = build_initial_message(release_payload, prompt_text)
 
+# ### Phase 1 - 4)
 messages.append({"role": "user", "content": initial_message})
 ```
 
@@ -2160,6 +2164,7 @@ Three helper functions do the prep work before Claude enters the picture:
 ---
 
 
+> \# ### Phase 1 - 1)
 ##### `get_tools_for_anthropic`
 
 ```python
@@ -2179,7 +2184,7 @@ We already know how to list tools from the MCP server — we did it in Part 09. 
 
 ---
 
-
+> \# ### Phase 1 - 2)
 ##### `get_prompt_for_release_notes`
 
 ```python
@@ -2214,7 +2219,7 @@ Write clear, concise release notes suitable for a developer audience.
 
 ---
 
-
+> \# ### Phase 1 - 3)
 ##### `build_initial_message`
 
 ```python
@@ -2241,7 +2246,15 @@ This function combines two things into a single user message:
 
 The result is Claude's starting context: *"here's the release, here are your writing instructions, now get to work."*
 
+---
+
+> \# ### Phase 1 - 4)
+```python
+messages.append({"role": "user", "content": initial_message})
+```
 That first message is appended to `messages` — the conversation history we'll maintain throughout the loop.
+
+> 💡 The role is `"user"` because, from Claude's perspective, the MCP client *is* the user — it sends messages, receives responses, and returns tool results. Claude is always `"assistant"`. The two roles alternate throughout the conversation history.
 
 ---
 
