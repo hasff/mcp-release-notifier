@@ -299,6 +299,9 @@ Starts the server. By default, it uses **stdio transport** — the server commun
 > 💡 **Transport is just a detail.** MCP is **transport-agnostic** — the core concepts (tools, resources, prompts) work the same regardless of whether communication happens over stdio (local) or HTTP (remote). The transport choice may affect some low-level behaviour, but that's beyond the scope of this project. Here we use stdio.
 >
 > 🐇 **Want to go deeper?** Ask an AI: *"What is the difference between HTTP+SSE and StreamableHTTP in MCP, and why might you need to disable notifications in HTTP-based transports?"*
+
+[⬆️ **`Part 1`**](#part-1)
+
 ---
 
 
@@ -417,6 +420,8 @@ Already covered in Part 01 — this is the `FastMCP` class that powers our serve
 
 **# 3 — ReportLab:**
 `A4` defines the page size. `SimpleDocTemplate` is the PDF document builder. `Paragraph` and `Spacer` are layout elements — text blocks and vertical spacing. `getSampleStyleSheet` provides a set of pre-built text styles (Title, Heading, Normal).
+
+[⬆️ **`Part 2`**](#part-2)
 
 ---
 
@@ -566,6 +571,8 @@ You should now see both tools available — `read_last_release` and `create_pdf`
 
 ![Available tools](assets/part_03/screenshot_connected_available_tools.jpg)
 
+[⬆️ **`Part 3`**](#part-3)
+
 ---
 
 
@@ -603,6 +610,8 @@ The result should be the JSON content of the latest file in `release_data/`:
 ```
 
 ✅ Tool working correctly.
+
+[⬆️ **`Part 3`**](#part-3)
 
 ---
 
@@ -745,6 +754,8 @@ The address never changes. The content can — every call re-reads the folder.
 def get_release_by_id(id: str) -> str: ...
 ```
 The `{id}` in the URI maps directly to the `id: str` parameter in the function. FastMCP handles the extraction automatically.
+
+[⬆️ **`Part 4`**](#part-4)
 
 ---
 
@@ -919,6 +930,8 @@ Notice the response structure: `uri`, `mimeType`, and `text`. The `text` field c
 
 ✅ Static resource working correctly.
 
+[⬆️ **`Part 5`**](#part-5)
+
 ---
 
 
@@ -958,6 +971,8 @@ Two things to observe here:
 - The **`mimeType`** is `text/plain` and the **`text`** is genuinely plain text — just the release notes body, no JSON wrapper. Compare this with Test 1 where `mimeType` was `application/json` and `text` contained a JSON string.
 
 ✅ Template resource working correctly.
+
+[⬆️ **`Part 5`**](#part-5)
 
 ---
 
@@ -1131,6 +1146,8 @@ The result on the right shows the resolved prompt as a MCP message object:
 
 ✅ Prompt retrieved and parameters correctly injected.
 
+[⬆️ **`Part 7`**](#part-7)
+
 ---
 
 
@@ -1295,6 +1312,8 @@ SERVER_SCRIPT = "MCP_Server/server_v4.py"
 
 The path to the server file. The client will launch it as a subprocess.
 
+[⬆️ **`Part 8`**](#part-8)
+
 ---
 
 
@@ -1379,6 +1398,8 @@ Think of this as the **cable** connecting client and server. It's low-level — 
 > It appears twice here because we have **two separate resources** to manage: the transport (the subprocess + streams) and the session (the protocol layer on top). Each needs its own lifecycle.
 >
 > 🐇 **Want to go deeper on AsyncExitStack?** → [Asynchronous Context Managers — Medium](https://medium.com/@hitorunajp/asynchronous-context-managers-f1c33d38c9e3)
+
+[⬆️ **`Part 8`**](#part-8)
 
 ---
 
@@ -1594,6 +1615,8 @@ def create_pdf(version: str, repo_name: str, release_notes: str, published_at: s
 
 The key names in `tool_args` must match the parameter names in the function. FastMCP handles the mapping automatically.
 
+[⬆️ **`Part 9`**](#part-9)
+
 ---
 
 
@@ -1760,6 +1783,8 @@ Three steps:
 
 **`client_session.read_resource(AnyUrl(uri))`** — same call as for static resources. The `{id}` placeholder in `releases://by/{id}` is resolved by constructing the full URI before passing it in. `read_resource` itself doesn't know or care whether the URI belongs to a static or template resource — it just fetches by address.
 
+[⬆️ **`Part 10`**](#part-10)
+
 ---
 
 ### Run it
@@ -1894,6 +1919,8 @@ print(result.messages[0].content.text)
 **`client_session.get_prompt(name, arguments)`** — fetches the prompt template with the parameters injected. The `arguments` dict keys must match the parameter names discovered in Block 1.
 
 **`result.messages[0].content.text`** — the rendered prompt string, ready to be passed to the Claude API as a user message. The `messages` structure mirrors what the API expects.
+
+[⬆️ **`Part 11`**](#part-11)
 
 ---
 
@@ -2443,6 +2470,8 @@ Two possible values in this pipeline:
 | `tool_use` | Claude wants to call a tool | Continue — execute tools, return results |
 | `end_turn` | Claude is done | Break — extract final text, exit loop |
 
+[⬆️ **`Part 13`**](#part-13)
+
 ---
 
 #### 4 — Add `test_full_pipeline`
@@ -2527,6 +2556,8 @@ ___________________________________________
 
 Claude autonomously called `read_last_release`, wrote professional release notes, then called `create_pdf`. No manual orchestration — Claude decided the sequence.
 
+[⬆️ **`Part 13`**](#part-13)
+
 ---
 
 ### 🎉 The WOW moment — the generated PDF
@@ -2576,6 +2607,8 @@ py MCP_Client/client_v6.py
 ```
 
 The terminal now shows every message object as it flows through the conversation. Here's what each one means:
+
+[⬆️ **`Part 13`**](#part-13)
 
 ---
 
@@ -2634,6 +2667,8 @@ Claude responds with **two blocks**: a reasoning text block and a `tool_use` blo
 The client executes the tool and returns the result. **Responding To ID** matches the 🚨 `Execution ID` 🚨 from Message 2 — this is how Claude correlates results to requests.
 
 ![Example: Why tool_use_id is important?](assets/part_13/screenshot_remember_p13.jpg)
+
+[⬆️ **`Part 13`**](#part-13)
 
 ---
 
@@ -2699,6 +2734,8 @@ ___________________________________________
 ```
 
 `stop_reason == "end_turn"`. No more tool calls. The loop exits.
+
+[⬆️ **`Part 13`**](#part-13)
 
 ---
 
@@ -2828,6 +2865,8 @@ And Message 3 reflects that — two TOOL_RESULT blocks side by side:
 ```
 
 The full conversation collapsed from 6 messages to 4. One fewer round-trip to the API.
+
+[⬆️ **`Part 13`**](#part-13)
 
 ---
 
@@ -2975,6 +3014,8 @@ Three things to note:
 
 **`GitHubWebhookPayload`** — a Pydantic model with `extra = "allow"`. This lets Swagger display a structured body while accepting any additional fields GitHub might include.
 
+[⬆️ **`Part 14`**](#part-14)
+
 ---
 
 #### Webhook logic — step by step
@@ -3035,6 +3076,8 @@ The server is live on port 8000. Open `http://localhost:8000/docs` in your brows
 
 ![Swagger UI](assets/part_14/screenshot_swagger_1.jpg)
 
+[⬆️ **`Part 14`**](#part-14)
+
 ---
 
 
@@ -3078,6 +3121,8 @@ INFO:     127.0.0.1:55066 - "GET /health HTTP/1.1" 200 OK
 ```
 
 ✅ Server is running correctly.
+
+[⬆️ **`Part 14`**](#part-14)
 
 ---
 
@@ -3129,6 +3174,8 @@ Result:
 ```
 
 ✅ Webhook received and validated the payload correctly.
+
+[⬆️ **`Part 14`**](#part-14)
 
 ---
 
@@ -3214,6 +3261,8 @@ ___________________________________________
 Notice the HTTP 200 was returned **before** the pipeline finished — that's `asyncio.create_task` doing its job. The webhook responded instantly; Claude kept working in the background.
 
 ✅ Full pipeline triggered via webhook. End to end. 🎉
+
+[⬆️ **`Part 14`**](#part-14)
 
 ---
 
@@ -3329,6 +3378,8 @@ INFO:     Application startup complete.
 
 Keep this terminal open.
 
+[⬆️ **`Part 15`**](#part-15)
+
 ---
 
 
@@ -3412,6 +3463,8 @@ Keep an eye on `MCP_Server/release_data/` and `MCP_Server/output/` — a new JSO
 
 Click **Execute**.
 
+[⬆️ **`Part 15`**](#part-15)
+
 ---
 
 
@@ -3490,6 +3543,8 @@ In the left sidebar, click **Webhooks**.
 
 > 💡 **GitHub may ask you to confirm your identity** before accessing this section — it will send a verification code to your email. This is normal; just follow the prompts.
 
+[⬆️ **`Part 16`**](#part-16)
+
 ---
 
 
@@ -3526,6 +3581,8 @@ A few things to note:
 **Send me everything** — fine for development. In production, I recommend you to use **"Let me select individual events"** and select only `Releases` — no reason to hit your server with events it will immediately ignore.
 
 Click **Add webhook**.
+
+[⬆️ **`Part 16`**](#part-16)
 
 ---
 
@@ -3641,6 +3698,8 @@ We compute the same hash on our side and compare using `hmac.compare_digest` —
 
 > 💡 **Why `hmac.compare_digest` and not `==`?** A regular string comparison short-circuits as soon as it finds a mismatch — an attacker can measure response time to guess the signature one character at a time. `compare_digest` always takes the same time regardless of where the mismatch is.
 
+[⬆️ **`Part 17`**](#part-17)
+
 ---
 
 #### 4 — Step 0 in `github_webhook` — Verify Signature
@@ -3697,6 +3756,8 @@ py FastAPI_Webhook/webhook_v2.py
 
 > ⚠️ **Do NOT stop cloudflared.** The public URL is already registered in GitHub from Part 16. If you stop cloudflared, you'll get a new random URL and will need to either edit the existing webhook in GitHub's settings or create a new one. Leave that terminal running.
 
+[⬆️ **`Part 17`**](#part-17)
+
 ---
 
 
@@ -3725,6 +3786,8 @@ On the **New release** screen, fill in:
 When you're done, click **Publish release**.
 
 ![New release form with Tag, Release title, Release notes fields and the Publish release button highlighted](assets/part_17/screenshot_github_release_2.jpg)
+
+[⬆️ **`Part 17`**](#part-17)
 
 ---
 
@@ -3771,6 +3834,8 @@ ___________________________________________
 ```
 
 Notice the HTTP 200 was returned before the pipeline finished — `asyncio.create_task` at work. The webhook responded instantly; Claude runs in the background.
+
+[⬆️ **`Part 17`**](#part-17)
 
 ---
 
@@ -3887,6 +3952,8 @@ In the channel settings menu on the left, click **Integrations**.
 On the Integrations screen, click **Create Webhook** under the Webhooks section.
 
 ![Create Webhook button on the Integrations screen](assets/part_18/screenshot_discord_3.jpg)
+
+[⬆️ **`Part 18`**](#part-18)
 
 ---
 
@@ -4042,6 +4109,8 @@ A few things to note:
 
 **Error returns instead of exceptions** — the tool returns a descriptive dict on failure rather than raising. This is intentional: Claude reads the tool result and can decide how to react — retry, report the error, or continue.
 
+[⬆️ **`Part 19`**](#part-19)
+
 ---
 
 
@@ -4092,6 +4161,8 @@ Version: 1.2.0.123456
 > 💡 This isolated test is exactly the kind of thing that saves hours of debugging later. If the Discord delivery breaks in the full pipeline, you'll know immediately that the problem is upstream — not in the tool itself.
 
 ❎ When you're done, press `Ctrl + C` in the terminal to stop the server.
+
+[⬆️ **`Part 19`**](#part-19)
 
 ---
 
@@ -4177,6 +4248,8 @@ Version: v1.2.6760
 
 ✅ Client pipeline working end to end — read → write → deliver.
 
+[⬆️ **`Part 19`**](#part-19)
+
 ---
 
 
@@ -4250,6 +4323,8 @@ https://<your-new-address>.trycloudflare.com/webhook
 
 Click **Update webhook**.
 
+[⬆️ **`Part 19`**](#part-19)
+
 ---
 
 
@@ -4277,6 +4352,8 @@ Click **Publish release**.
 Within a few seconds, the message and PDF appear in your Discord channel:
 
 ![Discord message showing the final pipeline result](assets/part_19/screenshot_discord_success.jpg)
+
+[⬆️ **`Part 19`**](#part-19)
 
 ---
 
@@ -4372,6 +4449,8 @@ In the Settings page, scroll down the left sidebar until you find **Developer se
 
 ![Settings page with Developer settings highlighted in the left sidebar](assets/part_20/screenshot_github_2.jpg)
 
+[⬆️ **`Part 20`**](#part-20)
+
 ---
 
 #### Select Fine-grained tokens
@@ -4403,6 +4482,8 @@ Give your token a descriptive name so you remember what it's for.
 Under **Repository access**, select **Only select repositories** and pick the repository you want the pipeline to read commits from.
 
 ![Repository access section with Only select repositories selected and a specific repo chosen](assets/part_20/screenshot_github_6.jpg)
+
+[⬆️ **`Part 20`**](#part-20)
 
 ---
 
@@ -4443,6 +4524,8 @@ GITHUB_REPO=your-repo-name
 `GITHUB_REPO` — the repository you want to read commits from (e.g. `test`).
 
 These two values are passed as arguments to the `list_commits` tool — the GitHub MCP server needs them to know which repository to query.
+
+[⬆️ **`Part 20`**](#part-20)
 
 ---
 
@@ -4519,6 +4602,8 @@ def test_github():
 ```
 
 Same pattern as `test_tools` from Part 09 — list the available tools, then call one directly to confirm it works end-to-end.
+
+[⬆️ **`Part 20`**](#part-20)
 
 ---
 
@@ -4615,6 +4700,8 @@ response = anthropic_client.messages.create(
 
 Claude sees one flat list of tools. It has no concept of "which server" — it just picks the right tool by name.
 
+[⬆️ **`Part 20`**](#part-20)
+
 ---
 
 #### 3 — Routing in the tool use loop
@@ -4699,6 +4786,8 @@ And it finishes with a clear confirmation that commits were included:
 ✅ Pipeline complete.
 ```
 
+[⬆️ **`Part 20`**](#part-20)
+
 ---
 
 
@@ -4725,6 +4814,8 @@ reliable output generation.
 
 Three raw commit messages → three professionally written paragraphs. The same transformation the prompt template applies to the release body — now applied to commit history too. ✅
 
+[⬆️ **`Part 20`**](#part-20)
+
 ---
 
 
@@ -4744,7 +4835,6 @@ It's identical to `webhook_v3.py` but imports `client_v8.run_pipeline`. Start it
 > 💡 **MCP Curiosity**
 > What we just demonstrated is **multi-server composition** — one of MCP's core design goals. A single client session can discover and use tools from any number of servers simultaneously. The model sees a unified tool catalog and routes calls based on tool descriptions alone, with no awareness of server boundaries. This is what makes MCP more powerful than point-to-point API integrations: swap a server, add a new one, and the model adapts automatically — no client code changes needed.
 
-[↑ Back to Table of Contents](#table-of-contents_)
 
 ---
 
@@ -4806,12 +4896,12 @@ Want to go deeper? Here are the resources that inspired and complement this proj
 
 Found this useful? Have questions or ideas? I'd love to hear from you.
 
-This project (including explaining everything step by step) took two weeks of full-time work — nights, weekends, and holidays included — purely because this is the kind of thing I enjoy building. If you're looking for someone who works like that, let's talk.
+This project — including explaining everything step by step — took two weeks of full-time focus: nights, weekends, and holidays included. Not because I had to, but because this is the kind of thing I really enjoy building. It was fun, it was challenging, and there were plenty of moments of doubt along the way — but I made it. If that sounds like the kind of energy you're looking for, or you're building something in this space and want to collaborate, I'd love to hear about it.
+
 
 *  🔗 **[LinkedIn](https://www.linkedin.com/in/hugo-ferro-1434b414/)**
 *  📩 **Email:** hugoferro (at) gmail.com
 
-*Open to interesting projects and collaborations.*
 
 [↑ Back to Table of Contents](#table-of-contents_)
 
