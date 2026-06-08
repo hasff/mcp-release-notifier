@@ -3973,7 +3973,7 @@ That's the full pipeline — GitHub release → webhook → Claude → MCP serve
 
 
 > 💡 **MCP Curiosity**
-> What we just built is the foundation of every event-driven agentic system: an external trigger (GitHub release) fires a webhook, which hands off to an AI agent that orchestrates tools autonomously. The same pattern powers Slack bots, email processors, CI/CD assistants, and document automation pipelines — the primitives are identical, only the tools change.
+> The MCP server in this pipeline runs as a local subprocess — launched by the client on demand and torn down when the pipeline finishes. This is the stdio transport model. In a production setup, you'd run the MCP server as a persistent process with `streamable-http` transport, so multiple webhook triggers don't each spin up and tear down their own server instance.
 
 [↑ Back to Table of Contents](#table-of-contents_)
 
