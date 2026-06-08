@@ -4497,7 +4497,7 @@ This is the pattern MCP was designed for: multiple servers, each exposing its ow
 
 > ⚠️ **The GitHub MCP server runs on your machine.** Unlike a hosted API, it runs as a local subprocess — exactly like our own server. The client launches it via `npx`, which means you need **Node.js** installed.
 
-> 💡 **Architectural Note:** The package used in this pipeline (`@modelcontextprotocol/server-github`) is the official reference implementation maintained by the Model Context Protocol open-source team. However, GitHub has also released its own official native server (written in Go and run via Docker) available at `github/github-mcp-server`. 
+> 💡 **Architectural Note:** The package used in this pipeline (`@modelcontextprotocol/server-github`) is the official reference implementation maintained by the **Model Context Protocol** open-source team. However, GitHub has also released its own official native server (written in Go and run via Docker) available at `github/github-mcp-server`. 
 >
 > For this pipeline, we use the NPM package as it integrates seamlessly and lightweight into our Python/Node environment without requiring Docker.
 
