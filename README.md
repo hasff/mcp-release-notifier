@@ -3660,7 +3660,7 @@ A few things to note:
 
 **Content type** — set to `application/json`. GitHub will send the payload as JSON in the request body, which is what our webhook expects.
 
-🚨 **Secret** — the value GitHub will use to sign every webhook delivery with an HMAC-SHA256 signature. Write it down — you'll need it in the next part when we add signature verification. In production, use something long and random; 🚨 `my-secret` is for demo purposes only.
+🚨 **Secret** — the value GitHub will use to sign every webhook delivery with an HMAC-SHA256 signature. Write it down — you'll need it in the next part when we add signature verification. In production, use something long and random; `my-secret` is for demo purposes only.
 
 ❗ **Send me everything** — fine for development. In production, I recommend you to use **"Let me select individual events"** and select only `Releases` — no reason to hit your server with events it will immediately ignore.
 
