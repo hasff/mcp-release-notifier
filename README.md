@@ -4245,10 +4245,13 @@ Version: 1.2.0.123456
 
 ❎ When you're done, press `Ctrl + C` in the terminal to stop the server.
 
+---
+
+With the server side done, two more files need updating before the full pipeline is ready: the **client** (to include the new tool in the task instructions) and the **webhook** (to point to the updated client). Let's go through both quickly.
+
 [⬆️ **`Part 19`**](#part-19)
 
 ---
-
 
 ### 🔌 Client — `client_v7.py`
 --- 
