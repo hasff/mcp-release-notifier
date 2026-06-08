@@ -406,7 +406,7 @@ if __name__ == "__main__":
     # test_tools()
     # test_resources()
     # test_prompts()
-    test_full_pipeline()
+    # test_full_pipeline()
 
-    # test_github()
+    test_github()
     pass
