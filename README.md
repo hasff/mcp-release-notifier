@@ -2,6 +2,8 @@
 
 > An agentic pipeline that listens to GitHub releases, generates professional release notes with AI, and delivers a PDF to Discord — built with MCP, FastAPI, and the Claude API.
 
+> 💾 If this project looks useful, starring it now means you won't lose it later.
+
 ---
 
 Picture this: your team ships a new release. The changelog reads *"fixed stuff, improved frontend, tweaked the login."* Nobody has time to write anything better — you're developers, not copywriters.
@@ -22,6 +24,8 @@ Before you dive in, please keep a few important things in mind:
 1. **Fast-Paced AI Evolution:** The AI landscape moves incredibly fast. While specific tools, libraries, or minor implementation details might change over time, the core concepts, protocol primitives, and foundational logic taught here will remain highly relevant.
 2. **Third-Party Interfaces:** UI screenshots, website layouts, and external platforms (like GitHub, Discord, or developer consoles) are completely out of my control and will likely change. Focus on the underlying logic — the workflow steps and connection mechanics remain the same regardless of the visual wrap.
 3. **Built with AI Assistance:** This tutorial was written with AI help — mainly for English refinement and phrasing. The architecture, curriculum, and all technical decisions are my own.
+
+> 🤗 The pipeline in this project was inspired by the [MCP Course from Hugging Face](https://huggingface.co/learn/mcp-course/unit0/introduction). If you enjoy this format, that course is the natural next step. 
 
 ---
 
@@ -4999,5 +5003,7 @@ This project — including explaining everything step by step — took two weeks
 ## By the way, did you hear about A2A?
 #### Watch this 10 minute video from IBM - A2A vs MCP: AI Agent Communication Explained
 [![Watch from IBM - A2A vs MCP: AI Agent Communication Explained](https://img.youtube.com/vi/BMDFPOyezH4/maxresdefault.jpg)](https://youtu.be/BMDFPOyezH4)
+
+*New tools. New servers. New agents. The horizon never stops growing. There is always another shore.* 🚀
 
 [↑ Back to Table of Contents](#table-of-contents_)
