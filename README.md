@@ -4881,7 +4881,7 @@ And it finishes with a clear confirmation that commits were included:
 
 ### The generated PDF
 
-The PDF delivered to Discord now includes a **Recent Commits** section — written by Claude from the raw commit messages:
+The PDF delivered to Discord now includes a section covering recent commit activity — written by Claude from the raw commit messages. The exact section title and structure may vary between runs; that's the nature of LLMs. What matters is that the commit content is there:
 
 ![Generated PDF with commits section](assets/part_20/screenshot_pdf.jpg)
 
