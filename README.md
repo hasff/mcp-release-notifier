@@ -3577,7 +3577,7 @@ The webhook returns `{"received": true, "tag": "v1.2.6760"}` and the pipeline ru
 
 
 > 💡 **MCP Curiosity**
-> Cloudflare Tunnel uses the **QUIC protocol** by default (you can see `protocol=quic` in the log output). QUIC is the same transport protocol underneath HTTP/3 — it reduces connection latency compared to TCP, which matters when your tunnel is relaying webhook payloads to a pipeline that fires multiple Claude API calls in sequence.
+> The stdio transport we use in this project only works locally — client and server must be on the same machine. If you wanted to deploy the MCP server remotely (e.g. on a VM or container), you'd switch to `streamable-http` transport. Cloudflare Tunnel is one way to bridge that gap during development without changing your transport setup.
 
 [↑ Back to Table of Contents](#table-of-contents_)
 
