@@ -1396,6 +1396,7 @@ mcp_server_params = StdioServerParameters(
     args=[SERVER_SCRIPT],
 )
 ```
+> 💡 **Windows note:** `command="python"` works here even if your terminal requires `py`. This subprocess is launched by Python itself with the active virtual environment already resolved — `python` maps correctly inside that context.
 
 This is the recipe for launching the server. It says: *"run `python MCP_Server/server_v4.py` as a subprocess."*
 
