@@ -4382,6 +4382,8 @@ py FastAPI_Webhook/webhook_v3.py
 
 ### Step 2 — Start the tunnel
 
+> 💡 If cloudflared is still running from Part 15, skip this step — the tunnel is already forwarding to `localhost:8000`. Only restart it if you stopped it.
+
 In a second terminal:
 
 ```bash
