@@ -3694,8 +3694,7 @@ GitHub confirms the webhook was registered successfully.
 
 
 > 💡 **MCP Curiosity**
-> GitHub webhooks use HMAC-SHA256 signatures — the same cryptographic primitive used to sign JWT tokens and AWS request payloads. The server computes the expected signature from the secret and the raw request body, then compares it to the one GitHub sent. If they match, the request is authentic. In Part 17 we'll implement this in `webhook_v2.py`.
-
+> Every MCP server exposes a `tools/list` endpoint that any client can call to discover available tools at runtime — including their names, descriptions, and input schemas. This is how the GitHub MCP server we'll connect in Part 20 works: our client asks *"what can you do?"* and gets back the full catalog, no hardcoding needed.
 
 [↑ Back to Table of Contents](#table-of-contents_)
 
