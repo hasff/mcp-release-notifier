@@ -4,6 +4,8 @@
 
 > 💾 If this project looks useful, starring it now means you won't lose it later.
 
+🗓️ **Status: June 2026**
+
 ---
 
 Picture this: your team ships a new release. The changelog reads *"fixed stuff, improved frontend, tweaked the login."* Nobody has time to write anything better — you're developers, not copywriters.
@@ -2115,6 +2117,11 @@ assert ANTHROPIC_API_KEY, "Error: ANTHROPIC_API_KEY not found. Check your .env f
 `CLAUDE_MODEL` — the Claude model to use. We're using Haiku here for speed and cost efficiency.
 
 `ANTHROPIC_API_KEY` — loaded from the environment. The `assert` fails fast with a clear message if the key is missing.
+
+> 🤖 **Model note:** `claude-haiku-4-5` was the current fast/cheap Claude model when this
+> was written (June 2026). The model landscape evolves quickly — if this string throws an
+> error, check the [latest available models](https://docs.anthropic.com/en/docs/about-claude/models/overview)
+> and substitute accordingly. The pipeline logic doesn't change regardless of which model you use.
 
 ---
 
