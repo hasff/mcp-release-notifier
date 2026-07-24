@@ -1,8 +1,6 @@
 # mcp-release-notifier
 
-[![Sponsor](https://img.shields.io/badge/Sponsor-💜-blueviolet)](https://github.com/sponsors/hasff)
-[![Sponsor](https://img.shields.io/badge/Sponsor-💜-brightgreen)](https://github.com/sponsors/hasff)
-[![Sponsor hasff](https://img.shields.io/badge/Sponsor-hasff-ea4aaa?logo=github-sponsors)](https://github.com/sponsors/hasff)
+[![Sponsor hasff](https://img.shields.io/badge/Sponsor-hasff-brightgreen?logo=github-sponsors)](https://github.com/sponsors/hasff)
 
 > An agentic pipeline that listens to GitHub releases, generates professional release notes with AI, and delivers a PDF to Discord — built with MCP, FastAPI, and the Claude API.
 
