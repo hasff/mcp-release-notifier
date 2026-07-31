@@ -5005,6 +5005,7 @@ This project — including explaining everything step by step — took two weeks
 
 *  🔗 **[LinkedIn](https://www.linkedin.com/in/hugo-ferro-1434b414/)**
 *  📩 **Email:** hugoferro (at) gmail.com
+*  🗂️ **Portfolio:** [more AI/ML projects like this one](https://hasff.github.io/my-ai-portfolio/)
 
 
 [↑ Back to Table of Contents](#table-of-contents_)
